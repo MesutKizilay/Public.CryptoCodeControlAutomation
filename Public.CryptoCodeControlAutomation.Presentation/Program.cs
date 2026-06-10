@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.IdentityModel.Tokens;
+using CryptoCodeControlAutomation.Presentation.Services;
 using static CryptoCodeControlAutomation.Presentation.Controllers.LdapController;
 
 namespace CryptoCodeControlAutomation.Presentation
@@ -24,6 +25,7 @@ namespace CryptoCodeControlAutomation.Presentation
 
             builder.Services.AddScoped<LdapAuthenticationService>();
             builder.Services.AddScoped<LdapSettings>();
+            builder.Services.AddSingleton<MoxaTcpDemoService>();
 
             // Configure Kestrel for large file uploads (100 MB limit)
             builder.WebHost.ConfigureKestrel(options =>
@@ -178,6 +180,8 @@ namespace CryptoCodeControlAutomation.Presentation
                 app.UseHsts();
             }
 
+            app.UseStatusCodePagesWithReExecute("/Home/NotFound404");
+
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseRouting();
@@ -185,7 +189,6 @@ namespace CryptoCodeControlAutomation.Presentation
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseStatusCodePagesWithReExecute("/Home/NotFound404");
 
             // Optional: enable dashboard if you want it exposed
             //app.UseHangfireDashboard("/hangfire");
