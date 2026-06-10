@@ -1,0 +1,50 @@
+@{
+	ViewData["Title"] = "DataMatrix PDF";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+	<link rel="stylesheet" href="~/assets/vendor/libs/dropzone/dropzone.css" />
+
+	<style>
+		.datamatrix-upload .dropzone {
+			min-height: 220px;
+			border-style: dashed;
+		}
+
+		.datamatrix-summary {
+			min-height: 24px;
+		}
+	</style>
+}
+
+<div class="card datamatrix-upload">
+	<div class="card-header border-bottom">
+		<h4 class="card-title mb-0">DataMatrix PDF Oluştur</h4>
+	</div>
+	<div class="card-body">
+		<div class="row g-4">
+			<div class="col-12">
+				<label class="form-label">CSV Dosyası</label>
+				<div action="/DataMatrixPrints/GeneratePdf" class="dropzone needsclick" id="dropzone-datamatrix-print">
+					<div class="dz-message needsclick">
+						Csv dosyanızı buraya taşıyın veya tıklayarak yükleyin
+						<span class="note needsclick" style="font-size: 0.85rem; color: #999;">(CSV)</span>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-12 d-flex align-items-center justify-content-between flex-wrap gap-3">
+				<div id="datamatrix-summary" class="datamatrix-summary text-muted"></div>
+				<button type="button" class="btn btn-primary" id="btnGenerateDataMatrixPdf">
+					<i class="bx bx-file me-1"></i>PDF Oluştur
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+@section Scripts {
+	<script src="~/assets/vendor/libs/dropzone/dropzone.js"></script>
+	<script src="~/js/dataMatrixPrints.js"></script>
+}

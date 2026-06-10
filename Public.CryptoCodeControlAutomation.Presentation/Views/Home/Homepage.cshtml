@@ -1,0 +1,171 @@
+﻿@{
+	ViewData["Title"] = "Ana Sayfa";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+	<link rel="stylesheet" href="../../assets/vendor/libs/swiper/swiper.css" />
+	<link rel="stylesheet" href="../../assets/vendor/css/pages/ui-carousel.css" />
+
+
+	<style>
+		.hero-slider {
+			position: relative;
+			min-height: 100vh;
+			overflow: hidden;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			background: linear-gradient(135deg, #d50032 0%, #ff008c 45%, #ff6a3d 100%);
+		}
+
+			.hero-slider::before {
+				content: "";
+				position: absolute;
+				inset: 0;
+				background: radial-gradient(circle at center, rgba(255, 255, 255, 0.08), transparent 55%);
+				z-index: 0;
+			}
+
+		.hero-bg-text {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			z-index: 1;
+			font-size: 280px;
+			font-weight: 800;
+			letter-spacing: 10px;
+			white-space: nowrap;
+			color: rgba(255, 255, 255, 0.18);
+			user-select: none;
+			pointer-events: none;
+		}
+
+		.swiper .swiper-slide {
+			background-color: transparent;
+		}
+
+		#swiper-multiple-slides, #swiper-3d-coverflow-effect {
+			height: 450px;
+		}
+	</style>
+}
+
+<h4 class="py-3 breadcrumb-wrapper mb-2">
+	<span class="text-muted fw-light"> Şölen /</span> Ürünlerimiz
+</h4>
+
+<hr class="container-m-nx border-light mt-2" />
+
+<div class="row">
+
+	<!-- 3D coverflow effect -->
+	@* 	<div class="col-12 mb-4">
+		<div class="swiper" id="swiper-3d-coverflow-effect">
+			<div class="swiper-wrapper">
+
+				<div class="swiper-slide" style="background-image: url('/img/solen/Chocodans-v5.png')">
+					Chocodans
+				</div>
+
+				<div class="swiper-slide" style="background-image: url('/img/solen/boombastic-v5.png')">
+					Boombastic
+				</div>
+
+				<div class="swiper-slide" style="background-image: url('/img/solen/Greta-v2.png')">
+					Greta
+				</div>
+
+				<div class="swiper-slide" style="background-image: url('/img/solen/luppo-v4.png')">
+					Luppo
+				</div>
+
+				<div class="swiper-slide" style="background-image: url('/img/solen/Nutymax-v2.png')">
+					Nutymax
+				</div>
+
+				<div class="swiper-slide" style="background-image: url('/img/solen/Papita-v2.png')">
+					Papita
+				</div>
+
+				<div class="swiper-slide" style="background-image: url('/img/solen/Ikramlik-v4.png')">
+					İkramlıklar
+				</div>
+
+				<div class="swiper-slide" style="background-image: url('/img/solen/solen-yilbasi-v1.png')">
+					Hediyelik
+				</div>
+
+				<div class="swiper-slide" style="background-image: url('/img/solen/biscolata-v5.png')">
+					Biscolata
+				</div>
+
+				<div class="swiper-slide" style="background-image: url('/img/solen/ozmo-v6.png')">
+					Ozmo
+				</div>
+
+			</div>
+			<div class="swiper-pagination"></div>
+		</div>
+	</div>*@
+
+
+
+
+	<div class="hero-slider">
+		<div class="hero-bg-text">ŞÖLEN</div>
+
+		<div class="swiper" id="swiper-3d-coverflow-effect">
+			<div class="swiper-wrapper">
+
+				<div class="swiper-slide" style="background-image: url('/img/solen/Chocodans-v5.png')">
+					@* Chocodans *@
+				</div>
+
+				<div class="swiper-slide" style="background-image: url('/img/solen/boombastic-v5.png')">
+					@* Boombastic *@
+				</div>
+
+				<div class="swiper-slide" style="background-image: url('/img/solen/Greta-v2.png')">
+					@* Greta *@
+				</div>
+
+				<div class="swiper-slide" style="background-image: url('/img/solen/luppo-v4.png')">
+					@* Luppo *@
+				</div>
+
+				<div class="swiper-slide" style="background-image: url('/img/solen/Nutymax-v2.png')">
+					@* Nutymax *@
+				</div>
+
+				<div class="swiper-slide" style="background-image: url('/img/solen/Papita-v2.png')">
+					@* Papita *@
+				</div>
+
+				<div class="swiper-slide" style="background-image: url('/img/solen/Ikramlik-v4.png')">
+					@* İkramlıklar *@
+				</div>
+
+				<div class="swiper-slide" style="background-image: url('/img/solen/solen-yilbasi-v1.png')">
+					@* Hediyelik *@
+				</div>
+
+				<div class="swiper-slide" style="background-image: url('/img/solen/biscolata-v5.png')">
+					@* Biscolata *@
+				</div>
+
+				<div class="swiper-slide" style="background-image: url('/img/solen/ozmo-v6.png')">
+					@* Ozmo *@
+				</div>
+
+			</div>
+			<div class="swiper-pagination"></div>
+		</div>
+	</div>
+</div>
+
+@section Scripts {
+	<script src="../../assets/vendor/libs/swiper/swiper.js"></script>
+	<script src="../../assets/js/ui-carousel.js"></script>
+}

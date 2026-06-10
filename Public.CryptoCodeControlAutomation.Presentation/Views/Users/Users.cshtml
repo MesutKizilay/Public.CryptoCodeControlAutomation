@@ -1,0 +1,203 @@
+﻿@{
+	ViewData["Title"] = "Kullanıcılar";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+	<link rel="stylesheet" href="../../assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css" />
+	<link rel="stylesheet" href="../../assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css" />
+	<link rel="stylesheet" href="../../assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css" />
+
+	<link rel="stylesheet" href="../../assets/vendor/libs/select2/select2.css" />
+
+
+	<style>
+		/* action alanında taşmaları ve üst üste binmeyi önle */
+		.dt-action-buttons {
+			gap: .5rem; /* butonlar arası boşluk */
+			flex-wrap: wrap; /* dar ekranda alt satıra insin */
+		}
+		/* Export dropdown'ın üstte kalması için */
+		/* .dt-buttons .btn-group {
+									position: relative;
+									z-index: 10;
+								} */
+
+		/* Arama kutusu genişliği: küçük ekranda da sığsın */
+		.dataTables_filter input {
+			/* min-width: 200px; */
+			width: auto;
+		}
+		/* Label sarmalayıcı taşırmasın */
+		.dataTables_filter label {
+			margin-bottom: 0;
+		}
+
+		#usersTable td,
+		#usersTable th {
+			padding: 8px 19.2px;
+		}
+
+		/* @@media screen and (max-width: 1399.98px) {
+					.my-nonblock-table {
+						display: table !important;
+					}
+				} */
+	</style>
+}
+
+<!-- Users List Table -->
+<div class="card">
+	<div class="card-header border-bottom">
+		<h4 class="card-title">Kullanıcı Listesi</h4>		
+	</div>
+	<div class="card-datatable table-responsive">		
+
+		<table id="usersTable" class="table border-top table-responsive table-striped table-hover my-nonblock-table" style="width:100%">
+		</table>
+	</div>
+
+	<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasAddUser" aria-labelledby="offcanvasAddUserLabel">
+		<div class="offcanvas-header border-bottom">
+			<h6 id="offcanvasAddUserLabel" class="offcanvas-title">Yeni Kullanıcı</h6>
+			<button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+		</div>
+
+		<div class="offcanvas-body mx-0 flex-grow-0">
+			<form id="addNewUserForm" onsubmit="return false" novalidate>
+				@* CSRF kullanıyorsan aç *@
+				@* @Html.AntiForgeryToken() *@
+
+				<div class="mb-3">
+					<label class="form-label" for="firstName">Kullanıcı Adı</label>
+					<input type="text" class="form-control" id="firstName" name="firstName" placeholder=" Kullanıcı Ad">
+				</div>
+
+				<div class="mb-3">
+					<label class="form-label" for="fullName">Tam Ad</label>
+					<input type="text" class="form-control" id="fullName" name="fullName" placeholder="Tam Ad">
+				</div>
+
+				<div class="mb-3">
+					<label class="form-label" for="password">Şifre</label>
+					<input type="password" class="form-control" id="password" name="password" placeholder="••••••••">
+				</div>
+
+				<div class="mb-3">
+					<label class="switch switch-primary" for="requiresLdapAuthentication">
+						<input type="checkbox" class="switch-input" id="requiresLdapAuthentication" name="requiresLdapAuthentication" checked />
+						<span class="switch-toggle-slider">
+							<span class="switch-on">
+								<i class="bx bx-check"></i>
+							</span>
+							<span class="switch-off">
+								<i class="bx bx-x"></i>
+							</span>
+						</span>
+						<span class="switch-label">LDAP ile doğrulansın</span>
+					</label>
+				</div>
+
+				<div class="mb-3">
+					<label class="form-label" for="operationClaimId">Rol</label>
+					<select id="operationClaimId" name="operationClaimId" class="form-select" multiple>
+						@* <option value="">Seçiniz</option> *@
+						<!-- JS ile doldurulacak -->
+					</select>
+				</div>
+
+				<div class="mb-5">
+					<label class="switch switch-primary" for="status">
+						<input type="checkbox" class="switch-input" id="status" name="status" checked />
+						<span class="switch-toggle-slider">
+							<span class="switch-on">
+								<i class="bx bx-check"></i>
+							</span>
+							<span class="switch-off">
+								<i class="bx bx-x"></i>
+							</span>
+						</span>
+						<span class="switch-label">Aktif</span>
+					</label>
+				</div>
+
+				<button type="submit" class="btn btn-primary me-sm-3 me-1" id="btnSaveUser">Kaydet</button>
+				<button type="button" class="btn btn-label-secondary" data-bs-dismiss="offcanvas">İptal</button>
+			</form>
+		</div>
+	</div>
+
+	<div class="offcanvas offcanvas-end" id="offcanvasEditUser" tabindex="-1" aria-labelledby="offcanvasEditUserLabel">
+		<div class="offcanvas-header border-bottom">
+			<h6 id="offcanvasEditUserLabel" class="offcanvas-title">Kullanıcı Güncelle</h6>
+			<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+		</div>
+
+		<div class="offcanvas-body mx-0 flex-grow-0">
+			<form id="editUserForm" onsubmit="return false" novalidate>
+				<input type="hidden" id="edit-id">
+
+				<div class="mb-3">
+					<label class="form-label" for="edit-firstName">Kullanıcı Adı</label>
+					<input type="text" class="form-control" id="edit-firstName" placeholder="Kullanıcı Adı">
+				</div>
+
+				<div class="mb-3">
+					<label class="form-label" for="edit-fullName">Tam Ad</label>
+					<input type="text" class="form-control" id="edit-fullName" name="fullName" placeholder="Tam Ad">
+				</div>
+
+				<div class="mb-3">
+					<label class="form-label" for="edit-password">Şifre</label>
+					<input type="password" class="form-control" id="edit-password" placeholder="••••••••">
+				</div>
+
+				<div class="mb-3">
+					<label class="switch switch-primary" for="edit-requiresLdapAuthentication">
+						<input type="checkbox" class="switch-input" id="edit-requiresLdapAuthentication" name="edit-requiresLdapAuthentication" checked />
+						<span class="switch-toggle-slider">
+							<span class="switch-on">
+								<i class="bx bx-check"></i>
+							</span>
+							<span class="switch-off">
+								<i class="bx bx-x"></i>
+							</span>
+						</span>
+						<span class="switch-label">LDAP ile doğrulansın</span>
+					</label>
+				</div>
+
+				<div class="mb-3">
+					<label class="form-label" for="edit-operationClaimId">Rol</label>
+					<select id="edit-operationClaimId" class="form-select select2" multiple>
+						<!-- rolleri sen dolduracaksın -->
+					</select>
+				</div>
+
+				<div class="mb-5">
+					<label class="switch switch-primary" for="edit-status">
+						<input type="checkbox" class="switch-input" id="edit-status" name="edit-status" checked />
+						<span class="switch-toggle-slider">
+							<span class="switch-on">
+								<i class="bx bx-check"></i>
+							</span>
+							<span class="switch-off">
+								<i class="bx bx-x"></i>
+							</span>
+						</span>
+						<span class="switch-label">Aktif</span>
+					</label>
+				</div>
+
+				<button type="submit" class="btn btn-primary me-2" id="btnUpdateUser">Güncelle</button>
+				<button type="button" class="btn btn-label-secondary" data-bs-dismiss="offcanvas">İptal</button>
+			</form>
+		</div>
+	</div>
+</div>
+
+@section Scripts {
+	<script src="../../assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
+	<script src="../../assets/vendor/libs/select2/select2.js"></script>
+	<script src="~/js/users.js"></script>
+}

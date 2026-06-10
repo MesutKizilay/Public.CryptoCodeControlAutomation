@@ -1,0 +1,37 @@
+@{
+    ViewData["Title"] = "Sipariş Onayları";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css" />
+    <link rel="stylesheet" href="~/assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css" />
+    <link rel="stylesheet" href="~/assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css" />
+
+    <style>
+        .dt-action-buttons {
+            gap: .5rem;
+            flex-wrap: wrap;
+        }
+
+        .approval-action {
+            white-space: nowrap;
+        }
+    </style>
+}
+
+<div class="card">
+    <div class="card-header border-bottom">
+        <h4 class="card-title mb-1">Sipariş Onayları</h4>
+        <p class="text-muted mb-0">Satış siparişlerinin üretim ve sevkiyat onaylarını yönetebilirsiniz.</p>
+    </div>
+
+    <div class="card-datatable table-responsive">
+        <table id="salesOrderItemApprovalTable" class="table border-top table-striped table-hover w-100"></table>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
+    <script src="~/js/salesOrderItemApprovals.js"></script>
+}

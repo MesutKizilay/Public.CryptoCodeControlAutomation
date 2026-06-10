@@ -1,0 +1,207 @@
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css" />
+    <link rel="stylesheet" href="~/assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css" />
+    <link rel="stylesheet" href="~/assets/vendor/libs/apex-charts/apex-charts.css" />
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4 class="card-title mb-0">Kod Durumu Özeti</h4>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-6 col-lg-3">
+                    <div class="card h-100">
+                        <div class="card-body d-flex align-items-center gap-3">
+                            <span class="badge bg-label-primary p-2"><i class="bx bx-hash"></i></span>
+                            <div>
+                                <div class="text-muted small">Toplam Kod</div>
+                                <h5 id="code-total" class="mb-0">0</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-lg-3">
+                    <div class="card h-100">
+                        <div class="card-body d-flex align-items-center gap-3">
+                            <span class="badge bg-label-success p-2"><i class="bx bx-check"></i></span>
+                            <div>
+                                <div class="text-muted small">Üretilen</div>
+                                <h5 id="code-produced" class="mb-0">0</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-lg-3">
+                    <div class="card h-100">
+                        <div class="card-body d-flex align-items-center gap-3">
+                            <span class="badge bg-label-danger p-2"><i class="bx bx-trash"></i></span>
+                            <div>
+                                <div class="text-muted small">Fire</div>
+                                <h5 id="code-scrap" class="mb-0">0</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-lg-3">
+                    <div class="card h-100">
+                        <div class="card-body d-flex align-items-center gap-3">
+                            <span class="badge bg-label-warning p-2"><i class="bx bx-error"></i></span>
+                            <div>
+                                <div class="text-muted small">Reject</div>
+                                <h5 id="code-reject" class="mb-0">0</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-lg-3">
+                    <div class="card h-100">
+                        <div class="card-body d-flex align-items-center gap-3">
+                            <span class="badge bg-label-info p-2"><i class="bx bx-cube"></i></span>
+                            <div>
+                                <div class="text-muted small">Available</div>
+                                <h5 id="code-available" class="mb-0">0</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-lg-3">
+                    <div class="card h-100">
+                        <div class="card-body d-flex align-items-center gap-3">
+                            <span class="badge bg-label-secondary p-2"><i class="bx bx-box"></i></span>
+                            <div>
+                                <div class="text-muted small">Allocated</div>
+                                <h5 id="code-allocated" class="mb-0">0</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-lg-3">
+                    <div class="card h-100">
+                        <div class="card-body d-flex align-items-center gap-3">
+                            <span class="badge bg-label-dark p-2"><i class="bx bx-x-circle"></i></span>
+                            <div>
+                                <div class="text-muted small">Void</div>
+                                <h5 id="code-void" class="mb-0">0</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>    
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-7">
+            <div class="card h-100">
+                <div class="card-header border-bottom">
+                    <h5 class="card-title mb-0">Satış Siparişleri</h5>
+                </div>
+                <div class="card-datatable table-responsive">
+                    <table id="dashboard-salesorderitems-table" class="table border-top table-striped table-hover w-100"></table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card h-100">
+                <div class="card-header border-bottom">
+                    <h5 class="card-title mb-0">Planlı Siparişler</h5>
+                    <small id="planned-orders-subtitle" class="text-muted">Satış siparişi seçiniz</small>
+                </div>
+                <div class="table-responsive">
+                    <table id="dashboard-plannedorders-table" class="table table-striped table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Planlı Sipariş No</th> 
+                                <th>Hat</th>
+                                <th>Miktar</th>
+                                @* <th>Kod</th> *@
+                                <th>Durum</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="text-muted">
+                                <td colspan="5">Henüz seçim yok.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 ">
+        <div class="col-12">
+            <div class="card h-100">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <div>
+                        <h5 class="card-title mb-0">Kod Durum Dağılımı</h5>
+                        <small class="text-muted">Seçime göre anlık dağılım</small>
+                        <small id="code-status-selection" class="d-block text-muted">Tüm kodlar</small>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="code-status-donut"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mt-1">
+        <div class="col-12">
+            <div class="card h-100">
+                <div class="card-header header-elements">
+                    <div class="d-flex flex-column">
+                        <h5 class="card-title mb-0">Üretilen Kodlar</h5>
+                        <small id="produced-period-label" class="text-muted">Aylık</small>
+                    </div>
+                    <div class="card-action-element ms-auto py-0">
+                        <div class="dropdown">
+                            <button type="button" class="btn dropdown-toggle px-0" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bx bx-calendar"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a href="javascript:void(0);" class="dropdown-item d-flex align-items-center" data-produced-period="daily">Günlük</a>
+                                </li>
+                                <li>
+                                    <a href="javascript:void(0);" class="dropdown-item d-flex align-items-center" data-produced-period="weekly">Haftalık</a>
+                                </li>
+                                <li>
+                                    <a href="javascript:void(0);" class="dropdown-item d-flex align-items-center" data-produced-period="monthly">Aylık</a>
+                                </li>
+                                <li>
+                                    <a href="javascript:void(0);" class="dropdown-item d-flex align-items-center" data-produced-period="yearly">Yıllık</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="produced-bar-chart" class="chartjs" data-height="320"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/assets/vendor/libs/apex-charts/apexcharts.js"></script>
+    <script src="~/assets/vendor/libs/chartjs/chartjs.js"></script>
+    <script src="~/assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
+    <script src="~/js/dashboard.js"></script>
+}

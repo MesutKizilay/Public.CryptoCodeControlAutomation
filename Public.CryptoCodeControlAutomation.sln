@@ -1,0 +1,87 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36221.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CorePackages", "CorePackages", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Application", "Core.Application\Core.Application.csproj", "{39377FC4-97A7-7F6A-8FF7-8F1F29403257}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.CrossCuttingConcerns", "Core.CrossCuttingConcerns\Core.CrossCuttingConcerns.csproj", "{C1032879-83AB-566C-9711-710F678DBBAA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Persistence", "Core.Persistence\Core.Persistence.csproj", "{F27976D1-2565-2D41-BFEF-07DF70D39F4E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Security", "Core.Security\Core.Security.csproj", "{43792CC7-8574-432F-8634-4CACA4B7C5A1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Public.CryptoCodeControlAutomation.App", "Public.CryptoCodeControlAutomation.App\Public.CryptoCodeControlAutomation.App.csproj", "{B96401B7-5AF9-C779-3938-2D7FAFA1C2A1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Public.CryptoCodeControlAutomation.Application", "Public.CryptoCodeControlAutomation.Application\Public.CryptoCodeControlAutomation.Application.csproj", "{E4CE48CF-42A6-52AD-AF40-8CC9815756E9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Public.CryptoCodeControlAutomation.Domain", "Public.CryptoCodeControlAutomation.Domain\Public.CryptoCodeControlAutomation.Domain.csproj", "{FDD33CAD-FEEE-55E8-C951-4CEB11D2BC1A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptoCodeControlAutomation.Infrastructure", "Public.CryptoCodeControlAutomation.Infrastructure\CryptoCodeControlAutomation.Infrastructure.csproj", "{AEFB3B27-AD27-CE86-2072-A9B53F2A5CCE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptoCodeControlAutomation.Persistence", "Public.CryptoCodeControlAutomation.Persistence\CryptoCodeControlAutomation.Persistence.csproj", "{F4FF239C-D917-E502-3249-E645F9064B57}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Public.CryptoCodeControlAutomation.Presentation", "Public.CryptoCodeControlAutomation.Presentation\Public.CryptoCodeControlAutomation.Presentation.csproj", "{E4345116-9453-9E11-7B61-5CA5755DF01F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{39377FC4-97A7-7F6A-8FF7-8F1F29403257}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39377FC4-97A7-7F6A-8FF7-8F1F29403257}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39377FC4-97A7-7F6A-8FF7-8F1F29403257}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39377FC4-97A7-7F6A-8FF7-8F1F29403257}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C1032879-83AB-566C-9711-710F678DBBAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C1032879-83AB-566C-9711-710F678DBBAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C1032879-83AB-566C-9711-710F678DBBAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C1032879-83AB-566C-9711-710F678DBBAA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F27976D1-2565-2D41-BFEF-07DF70D39F4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F27976D1-2565-2D41-BFEF-07DF70D39F4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F27976D1-2565-2D41-BFEF-07DF70D39F4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F27976D1-2565-2D41-BFEF-07DF70D39F4E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43792CC7-8574-432F-8634-4CACA4B7C5A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43792CC7-8574-432F-8634-4CACA4B7C5A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43792CC7-8574-432F-8634-4CACA4B7C5A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43792CC7-8574-432F-8634-4CACA4B7C5A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B96401B7-5AF9-C779-3938-2D7FAFA1C2A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B96401B7-5AF9-C779-3938-2D7FAFA1C2A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B96401B7-5AF9-C779-3938-2D7FAFA1C2A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B96401B7-5AF9-C779-3938-2D7FAFA1C2A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E4CE48CF-42A6-52AD-AF40-8CC9815756E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E4CE48CF-42A6-52AD-AF40-8CC9815756E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E4CE48CF-42A6-52AD-AF40-8CC9815756E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E4CE48CF-42A6-52AD-AF40-8CC9815756E9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FDD33CAD-FEEE-55E8-C951-4CEB11D2BC1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDD33CAD-FEEE-55E8-C951-4CEB11D2BC1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FDD33CAD-FEEE-55E8-C951-4CEB11D2BC1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FDD33CAD-FEEE-55E8-C951-4CEB11D2BC1A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEFB3B27-AD27-CE86-2072-A9B53F2A5CCE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEFB3B27-AD27-CE86-2072-A9B53F2A5CCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEFB3B27-AD27-CE86-2072-A9B53F2A5CCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEFB3B27-AD27-CE86-2072-A9B53F2A5CCE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F4FF239C-D917-E502-3249-E645F9064B57}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F4FF239C-D917-E502-3249-E645F9064B57}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F4FF239C-D917-E502-3249-E645F9064B57}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F4FF239C-D917-E502-3249-E645F9064B57}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E4345116-9453-9E11-7B61-5CA5755DF01F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E4345116-9453-9E11-7B61-5CA5755DF01F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E4345116-9453-9E11-7B61-5CA5755DF01F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E4345116-9453-9E11-7B61-5CA5755DF01F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{39377FC4-97A7-7F6A-8FF7-8F1F29403257} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{C1032879-83AB-566C-9711-710F678DBBAA} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{F27976D1-2565-2D41-BFEF-07DF70D39F4E} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{43792CC7-8574-432F-8634-4CACA4B7C5A1} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0B4F64EA-59AC-4073-8546-7B2D868B5E76}
+	EndGlobalSection
+EndGlobal

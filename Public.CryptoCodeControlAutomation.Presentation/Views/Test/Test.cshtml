@@ -1,0 +1,93 @@
+@{
+    ViewData["Title"] = "Test";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Test</h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label">Kod</label>
+                <input id="test-code-input" type="text" class="form-control" placeholder="Kodu okutun veya yazın">
+                <div class="form-text">Enter ile kod sunucuya gönderilir.</div>
+            </div>
+
+            <div class="mt-3">
+                <div class="text-muted">Son Gönderilen Kod</div>
+                <div id="test-last-code" class="fw-semibold"></div>
+            </div>
+            <div class="mt-3">
+                <div class="text-muted">Debug</div>
+                <pre id="test-debug" class="small mb-0"></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const input = document.getElementById('test-code-input');
+        const lastCodeEl = document.getElementById('test-last-code');
+        const debugEl = document.getElementById('test-debug');
+
+        if (input) input.focus();
+
+        const normalizeCode = (value) => {
+            return (value || '').replace(/\|9(1|2|3)/g, '\u001D9$1');
+        };
+
+        const updateDebug = (value) => {
+            if (!debugEl) return;
+            const rawValue = value || '';
+            const codes = Array.from(rawValue).map(ch => ch.charCodeAt(0));
+            const hasGs = codes.includes(29);
+            const escaped = rawValue.replace(/\u001d/g, '[GS]');
+
+            const prepared = normalizeCode(rawValue);
+            const preparedHasGs = Array.from(prepared).some(ch => ch.charCodeAt(0) === 29);
+            const preparedEscaped = prepared.replace(/\u001d/g, '[GS]');
+
+            debugEl.textContent =
+                `Raw Len: ${rawValue.length}\n` +
+                `Raw Has GS(29): ${hasGs}\n` +
+                `Raw Codes: ${codes.join(', ')}\n` +
+                `Raw Escaped: ${escaped}\n` +
+                `Prepared Has GS(29): ${preparedHasGs}\n` +
+                `Prepared Escaped: ${preparedEscaped}`;
+        };
+
+        updateDebug('');
+
+        input?.addEventListener('input', function () {
+            updateDebug(input.value || '');
+        });
+
+        input?.addEventListener('keydown', function (e) {
+            if (e.key !== 'Enter') return;
+            e.preventDefault();
+
+            const codeRaw = (input.value || '').trim();
+            if (!codeRaw) return;
+            const code = normalizeCode(codeRaw);
+
+            $.ajax({
+                url: '/Test/SendCode',
+                type: 'POST',
+                //contentType: 'application/json',
+                data: { code: code },
+                success: function (res) {
+                    lastCodeEl.textContent = res?.code || code;
+                    input.value = '';
+                    input.focus();
+                    updateDebug('');
+                    Toast.fire({ icon: 'success', title: 'Kod alındı.' });
+                },
+                error: function (xhr) {
+                    parseErrorResponse(xhr);
+                }
+            });
+        });
+    })();
+</script>

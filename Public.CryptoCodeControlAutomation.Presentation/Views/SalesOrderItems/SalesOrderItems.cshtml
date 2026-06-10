@@ -1,0 +1,199 @@
+﻿@{
+	ViewData["Title"] = "Satış Siparişleri";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+	<link rel="stylesheet" href="~/assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css" />
+	<link rel="stylesheet" href="~/assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css" />
+	<link rel="stylesheet" href="~/assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css" />
+	<link rel="stylesheet" href="../../assets/vendor/libs/select2/select2.css" />
+	<link rel="stylesheet" href="~/assets/vendor/libs/dropzone/dropzone.css" />
+
+
+	<style>
+		.dt-action-buttons {
+			gap: .5rem;
+			flex-wrap: wrap;
+		}
+
+		.dataTables_filter label {
+			margin-bottom: 0;
+		}
+
+		.dataTables_filter input {
+			width: auto;
+		}
+
+		#labelsTable td,
+		#labelsTable th {
+			padding: 8px 19.2px;
+		}
+
+		td.dt-control {
+			cursor: pointer;
+		}
+
+		tr.shown td.dt-control .bx {
+			transform: rotate(180deg);
+			transition: transform 0.2s ease;
+		}
+
+		.uploadjob-table th,
+		.uploadjob-table td {
+			font-size: 0.85rem;
+			vertical-align: middle;
+		}
+
+		td.dt-control::before {
+			display: none !important;
+		}
+
+		#salesOrderItemTable th.dt-control,
+		#salesOrderItemTable td.dt-control {
+			/* width: 15px !important; */
+			/* min-width: 10px !important; */
+			max-width: 43px !important;
+			/* padding: 8px 19.2px; */
+		}
+	</style>
+}
+
+<div class="card">
+	<div class="card-header border-bottom">
+		<h4 class="card-title">Satış Siparişleri</h4>
+	</div>
+
+	<div class="card-datatable table-responsive">
+		<table id="salesOrderItemTable" class="table border-top table-striped table-hover w-100" style="width:100%"></table>
+	</div>
+
+	<!-- Add Offcanvas -->
+	<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasAddLabel" aria-labelledby="offcanvasAddLabelLabel">
+		<div class="offcanvas-header border-bottom">
+			<h6 id="offcanvasAddLabelLabel" class="offcanvas-title">Yeni Sipariş</h6>
+			<button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+		</div>
+
+		<div class="offcanvas-body mx-0 flex-grow-0">
+			<div id="addLabelForm" onsubmit="return false" novalidate>
+				@* @Html.AntiForgeryToken() *@
+
+				<div class="row g-3">
+					<div class="col-md-7">
+						<label class="form-label" for="salesOrderNo">Sales Order No</label>
+						<input type="text" class="form-control" id="salesOrderNo" placeholder="Otomatik" readonly />
+					</div>
+
+					<div class="col-md-5">
+						<label class="form-label" for="salesItemNo">Sales Item No</label>
+						<input type="text" class="form-control" id="salesItemNo" placeholder="Otomatik" readonly />
+					</div>
+
+					<div class="col-md-6">
+						<label class="form-label">Materıal No</label>
+						<input id="add-materialNo" class="form-control" placeholder="Malzeme No" />
+					</div>
+					<div class="col-md-6">
+						<label class="form-label">GTIN</label>
+						<input id="add-gtin" class="form-control" placeholder="GTIN" />
+					</div>
+					<div class="col-md-6">
+						<label class="form-label">Planned Unıt Quantıty</label>
+						<input id="add-plannedUnitQty" class="form-control" placeholder="Planlanan Birim Miktarı" />
+					</div>
+					<div class="col-md-6">
+						<label class="form-label">Case Quantıty</label>
+						<input id="add-caseQty" class="form-control" placeholder="Koli Miktarı" />
+					</div>
+					<hr />
+					<div class="col-md-12">
+						<label class="form-label">Dosya Yükle</label>
+						<div action="/SalesOrderItems/Upload" class="dropzone needsclick" id="dropzone-add-order">
+							<div class="dz-message needsclick">
+								Csv dosyanızı buraya taşıyın veya tıklayarak yükleyin
+								<span class="note needsclick" style="font-size: 0.85rem; color: #999;">(CSV)</span>
+							</div>
+							@* <div class="fallback">
+								<input name="file" type="file" />
+							</div> *@
+						</div>
+					</div>
+
+					<div class="mt-4">
+						<button type="button" class="btn btn-primary me-sm-3 me-1" id="btnSaveSalesOrderItem">Kaydet</button>
+						<button type="button" class="btn btn-label-secondary" data-bs-dismiss="offcanvas">İptal</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Etiket Güncelle Offcanvas -->
+	<div class="offcanvas offcanvas-end" id="offcanvasEditLabel" tabindex="-1" aria-labelledby="offcanvasEditLabelLabel">
+		<div class="offcanvas-header border-bottom">
+			<h6 id="offcanvasEditLabelLabel" class="offcanvas-title">Sipariş Güncelle</h6>
+			<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+		</div>
+
+		<div class="offcanvas-body mx-0 flex-grow-0">
+			<div id="editLabelForm" onsubmit="return false" novalidate>
+				<input type="hidden" id="edit-id">
+				<input type="hidden" id="edit-status">
+
+				<div class="row g-3">
+					<div class="col-md-7">
+						<label class="form-label" for="edit-salesOrderNo">Sales Order No</label>
+						<input type="text" class="form-control" id="edit-salesOrderNo" placeholder="Otomatik" readonly />
+					</div>
+					<div class="col-md-5">
+						<label class="form-label" for="edit-salesItemNo">Sales Item No</label>
+						<input type="text" class="form-control" id="edit-salesItemNo" placeholder="Otomatik" readonly />
+					</div>
+					<hr />
+					<div class="col-md-6">
+						<label class="form-label">Materıal No</label>
+						<input id="edit-materialNo" class="form-control" placeholder="Malzeme No" />
+					</div>
+					<div class="col-md-6">
+						<label class="form-label">GTIN</label>
+						<input id="edit-gtin" class="form-control" placeholder="GTIN" />
+					</div>
+					<div class="col-md-6">
+						<label class="form-label">Planned Unıt Qty</label>
+						<input id="edit-plannedUnitQty" class="form-control" placeholder="Planlanan Birim Miktarı" />
+					</div>
+					<div class="col-md-6">
+						<label class="form-label">Case Qty</label>
+						<input id="edit-caseQty" class="form-control" placeholder="Koli Miktarı" />
+					</div>
+					<hr />
+					@* <div class="col-md-12">
+						<label class="form-label">Dosya Yükle</label>
+						<div action="/SalesOrderItems/Upload" class="dropzone needsclick" id="dropzone-edit-order">
+							<div class="dz-message needsclick">
+								DosyalarÄ± buraya taÅŸÄ±yÄ±n veya tÄ±klayarak yÃ¼kleyin
+								<span class="note needsclick" style="font-size: 0.85rem; color: #999;">(PDF, Excel vb.)</span>
+							</div>
+							<div class="fallback">
+								<input name="file" type="file" />
+							</div>
+						</div>
+					</div> *@
+
+					<div class="mt-4">
+						<button type="button" class="btn btn-primary me-2" id="btnUpdateSalesOrderItem">Güncelle</button>
+						<button type="button" class="btn btn-label-secondary" data-bs-dismiss="offcanvas">İptal</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+@section Scripts {
+	<script src="~/assets/vendor/libs/select2/select2.js"></script>
+	<script src="~/assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
+	<script src="~/assets/vendor/libs/dropzone/dropzone.js"></script>
+	<script src="~/js/salesOrderItems.js"></script>
+}
