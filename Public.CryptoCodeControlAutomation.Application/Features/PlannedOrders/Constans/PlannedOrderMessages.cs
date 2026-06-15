@@ -2,6 +2,6 @@
 {
     public static class PlannedOrderMessages
     {
-        public const string PlannedOrderNotFound = "Planlı sipariş bulunamadı11.";
+        public const string PlannedOrderNotFound = "Planlı sipariş bulunamadı.";
     }
 }

@@ -2,6 +2,7 @@ using AutoMapper;
 using MediatR;
 using CryptoCodeControlAutomation.Application.Services.Repositories;
 using CryptoCodeControlAutomation.Domain.Entities;
+using CryptoCodeControlAutomation.Domain.Enums;
 
 namespace CryptoCodeControlAutomation.Application.Features.SalesOrderItems.Commands.Update
 {
@@ -14,6 +15,8 @@ namespace CryptoCodeControlAutomation.Application.Features.SalesOrderItems.Comma
         public string? GTIN { get; set; }
         public int SapPlannedUnitQty { get; set; }
         public int? SapCaseQty { get; set; }
+        public int? ShelfLifeValue { get; set; }
+        public ShelfLifeUnit? ShelfLifeUnit { get; set; }
         public DateTime? SapValidatedAt { get; set; }
 
         public class UpdateSalesOrderItemCommandHandler : IRequestHandler<UpdateSalesOrderItemCommand>
@@ -32,6 +35,8 @@ namespace CryptoCodeControlAutomation.Application.Features.SalesOrderItems.Comma
                 var salesOrderItem = await _salesOrderItemRepository.Get(b => b.SalesOrderItemId == request.SalesOrderItemId, cancellationToken: cancellationToken);
                 salesOrderItem.UpdatedAt = DateTime.Now;
                 _mapper.Map(request, salesOrderItem);
+                salesOrderItem.ShelfLifeValue = request.ShelfLifeValue!.Value;
+                salesOrderItem.ShelfLifeUnit = request.ShelfLifeUnit!.Value;
 
                 await _salesOrderItemRepository.Update(salesOrderItem, cancellationToken);
             }

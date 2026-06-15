@@ -16,7 +16,7 @@
 
                 Toast.fire({ icon: 'success', title: 'Giriş Başarılı' });
 
-                setTimeout(() => { window.location.href = '/Dashboard/Dashboard'; }, 1000);
+                setTimeout(() => { window.location.href = '/SalesOrderItems/SalesOrderItems'; }, 1000);
             },
             error: function (xhr) {
                 console.log("AuthResponseError", xhr);

@@ -5,14 +5,26 @@ using CryptoCodeControlAutomation.Application.Features.Codes.Queries.ExportCodeR
 using CryptoCodeControlAutomation.Application.Features.Codes.Queries.GetCodeReportList;
 using CryptoCodeControlAutomation.Application.Features.Codes.Queries.GetListCodesByPlannedOrderId;
 using CryptoCodeControlAutomation.Application.Features.PlannedOrders.Queries.GetPlannedOrderByPalletNumber;
+using CryptoCodeControlAutomation.Presentation.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net.Sockets;
+using System.Text.Json;
 
 namespace CryptoCodeControlAutomation.Presentation.Controllers
 {
     [Authorize(Policy = "AdminSupervisorOrOperator")]
     public class CodesController : BaseController 
     {
+        private const int RecoverScannerPort = 4997;
+        private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+        private readonly MoxaTcpDemoService _moxaTcpDemoService;
+
+        public CodesController(MoxaTcpDemoService moxaTcpDemoService)
+        {
+            _moxaTcpDemoService = moxaTcpDemoService;
+        }
+
         public IActionResult Scraps()
         {
             return View();
@@ -21,6 +33,76 @@ namespace CryptoCodeControlAutomation.Presentation.Controllers
         public IActionResult Recover()
         {
             return View();
+        }
+
+        [HttpPost]
+        public Task<IActionResult> StartRecoverScanner()
+        {
+            return StartScanner();
+        }
+
+        [HttpPost]
+        public Task<IActionResult> StartScrapsScanner()
+        {
+            return StartScanner();
+        }
+
+        private async Task<IActionResult> StartScanner()
+        {
+            try
+            {
+                await _moxaTcpDemoService.StartAsync(RecoverScannerPort);
+                return Ok(new { port = RecoverScannerPort });
+            }
+            catch (SocketException exception)
+            {
+                return BadRequest(new { message = $"4997 portu dinlenemedi: {exception.Message}" });
+            }
+            catch (InvalidOperationException exception)
+            {
+                return BadRequest(new { message = exception.Message });
+            }
+        }
+
+        [HttpGet]
+        public Task RecoverScannerStream(CancellationToken cancellationToken)
+        {
+            return StreamScanner(cancellationToken);
+        }
+
+        [HttpGet]
+        public Task ScrapsScannerStream(CancellationToken cancellationToken)
+        {
+            return StreamScanner(cancellationToken);
+        }
+
+        private async Task StreamScanner(CancellationToken cancellationToken)
+        {
+            Response.ContentType = "text/event-stream";
+            Response.Headers.CacheControl = "no-cache";
+            Response.Headers.Append("X-Accel-Buffering", "no");
+
+            var (subscriptionId, reader) = _moxaTcpDemoService.Subscribe();
+
+            try
+            {
+                await Response.WriteAsync(": connected\n\n", cancellationToken);
+                await Response.Body.FlushAsync(cancellationToken);
+
+                await foreach (var message in reader.ReadAllAsync(cancellationToken))
+                {
+                    var json = JsonSerializer.Serialize(message, JsonOptions);
+                    await Response.WriteAsync($"event: code\ndata: {json}\n\n", cancellationToken);
+                    await Response.Body.FlushAsync(cancellationToken);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            finally
+            {
+                _moxaTcpDemoService.Unsubscribe(subscriptionId);
+            }
         }
 
         public IActionResult CodeReports()

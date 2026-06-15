@@ -9,11 +9,19 @@
 
     const allowedCodes = new Map();
     const existingCodes = new Set();
+    let recoverScannerSource = null;
 
     if (!plannedOrderInput || !codeInput || !submitButton || !tableBody) return;
 
     const normalizeCode = (value) => {
         return (value || "").replace(/\|9(1|2|3)/g, "\u001D9$1");
+    };
+
+    const normalizePlannedOrderNo = (value) => {
+        const plannedOrderNo = (value || "").trim();
+        return /^\d+$/.test(plannedOrderNo)
+            ? plannedOrderNo.padStart(8, "0")
+            : plannedOrderNo;
     };
 
     const ensureEmptyRow = () => {
@@ -70,15 +78,69 @@
         updateCount();
     };
 
+    const processScannedCode = (rawCode) => {
+        const code = normalizeCode(rawCode).trim();
+        if (!code) return;
+
+        const codeId = allowedCodes.get(code);
+        addRow(code, codeId);
+    };
+
+    const getResponseMessage = async (response) => {
+        try {
+            const body = await response.json();
+            return body?.message || "Endüstriyel el terminali bağlantısı başlatılamadı.";
+        }
+        catch {
+            return "Endüstriyel el terminali bağlantısı başlatılamadı.";
+        }
+    };
+
+    const startRecoverScanner = async () => {
+        try {
+            const response = await fetch("/Codes/StartRecoverScanner", {
+                method: "POST"
+            });
+
+            if (!response.ok) {
+                throw new Error(await getResponseMessage(response));
+            }
+
+            recoverScannerSource = new EventSource("/Codes/RecoverScannerStream");
+
+            recoverScannerSource.addEventListener("code", (event) => {
+                const message = JSON.parse(event.data);
+                const value = message?.value ?? "";
+
+                codeInput.value = value;
+                processScannedCode(value);
+                codeInput.value = "";
+                codeInput.focus();
+            });
+
+            recoverScannerSource.onerror = () => {
+                console.warn("Recover scanner bağlantısı yeniden kurulmaya çalışılıyor.");
+            };
+        }
+        catch (error) {
+            Toast?.fire({
+                icon: "error",
+                title: error?.message || "Endüstriyel el terminali bağlantısı başlatılamadı."
+            });
+        }
+    };
+
     plannedOrderInput.addEventListener("keydown", (event) => {
         if (event.key !== "Enter") return;
         event.preventDefault();
 
-        const plannedOrderNo = plannedOrderInput.value.trim();
+        const plannedOrderNo = normalizePlannedOrderNo(plannedOrderInput.value);
         if (!plannedOrderNo) {
             Toast?.fire({ icon: "warning", title: "Planlı sipariş numarasını giriniz." });
             return;
         }
+
+        plannedOrderInput.value = plannedOrderNo;
 
         const shouldCloseSwal = !!window.Swal;
         if (shouldCloseSwal) {
@@ -106,7 +168,7 @@
                 updateCount();
                 if (Array.isArray(items)) {
                     items.forEach((item) => {
-                        const value = (item?.codeValue ?? "").toString().trim();
+                        const value = normalizeCode((item?.codeValue ?? "").toString()).trim();
                         const idValue = item?.codeId;
                         const codeId = Number(idValue);
                         if (value && Number.isFinite(codeId)) {
@@ -129,11 +191,7 @@
         if (event.key !== "Enter") return;
         event.preventDefault();
 
-        const code = normalizeCode(codeInput.value).trim();
-        if (!code) return;
-
-        const codeId = allowedCodes.get(code);
-        addRow(code, codeId);
+        processScannedCode(codeInput.value);
         codeInput.value = "";
         codeInput.focus();
     });
@@ -188,4 +246,9 @@
     });
 
     updateCount();
+    startRecoverScanner();
+
+    window.addEventListener("beforeunload", () => {
+        recoverScannerSource?.close();
+    });
 })();

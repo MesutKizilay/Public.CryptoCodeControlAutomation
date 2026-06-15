@@ -30,6 +30,13 @@ namespace CryptoCodeControlAutomation.Persistence.EntityConfiguration
             builder.Property(s => s.ProductionApprovedAt).IsRequired(false);
             builder.Property(s => s.ShipmentApprovedByUsername).HasMaxLength(100).IsRequired(false);
             builder.Property(s => s.ShipmentApprovedAt).IsRequired(false);
+            builder.Property(s => s.ShelfLifeValue)
+                .HasDefaultValue(0)
+                .IsRequired();
+            builder.Property(s => s.ShelfLifeUnit)
+                .HasConversion<byte>()
+                .HasDefaultValue(ShelfLifeUnit.Day)
+                .IsRequired();
 
             builder.Property(s => s.SapValidatedAt).HasDefaultValueSql("sysdatetime()");
             builder.Property(s => s.CreatedAt).HasDefaultValueSql("sysdatetime()");

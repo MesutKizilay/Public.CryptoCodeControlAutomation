@@ -7,7 +7,7 @@
 	<link rel="stylesheet" href="~/assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css" />
 	<link rel="stylesheet" href="~/assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css" />
 	<link rel="stylesheet" href="~/assets/vendor/libs/datatables-buttons-bs5/buttons.bootstrap5.css" />
-	<link rel="stylesheet" href="../../assets/vendor/libs/select2/select2.css" />
+	<link rel="stylesheet" href="~/assets/vendor/libs/select2/select2.css" />
 	<link rel="stylesheet" href="~/assets/vendor/libs/dropzone/dropzone.css" />
 
 
@@ -106,6 +106,21 @@
 						<label class="form-label">Case Quantıty</label>
 						<input id="add-caseQty" class="form-control" placeholder="Koli Miktarı" />
 					</div>
+					<div class="col-md-6">
+						<label class="form-label" for="add-shelfLifeValue">Raf Ömrü</label>
+						<input type="number" id="add-shelfLifeValue" class="form-control" min="0" step="1"
+							   placeholder="Raf Ömrü Değeri" inputmode="numeric" />
+					</div>
+					<div class="col-md-6">
+						<label class="form-label" for="add-shelfLifeUnit">Raf Ömrü Birimi</label>
+						<select id="add-shelfLifeUnit" class="form-select">
+							<option value=""></option>
+							<option value="0">Gün</option>
+							<option value="1">Hafta</option>
+							<option value="2">Ay</option>
+							<option value="3">Yıl</option>
+						</select>
+					</div>
 					<hr />
 					<div class="col-md-12">
 						<label class="form-label">Dosya Yükle</label>
@@ -166,6 +181,21 @@
 					<div class="col-md-6">
 						<label class="form-label">Case Qty</label>
 						<input id="edit-caseQty" class="form-control" placeholder="Koli Miktarı" />
+					</div>
+					<div class="col-md-6">
+						<label class="form-label" for="edit-shelfLifeValue">Raf Ömrü</label>
+						<input type="number" id="edit-shelfLifeValue" class="form-control" min="0" step="1"
+							   placeholder="Raf Ömrü Değeri" inputmode="numeric" />
+					</div>
+					<div class="col-md-6">
+						<label class="form-label" for="edit-shelfLifeUnit">Raf Ömrü Birimi</label>
+						<select id="edit-shelfLifeUnit" class="form-select">
+							<option value=""></option>
+							<option value="0">Gün</option>
+							<option value="1">Hafta</option>
+							<option value="2">Ay</option>
+							<option value="3">Yıl</option>
+						</select>
 					</div>
 					<hr />
 					@* <div class="col-md-12">

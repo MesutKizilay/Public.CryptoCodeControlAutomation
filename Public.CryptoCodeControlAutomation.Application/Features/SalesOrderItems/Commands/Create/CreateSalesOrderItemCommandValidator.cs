@@ -19,6 +19,14 @@ namespace CryptoCodeControlAutomation.Application.Features.SalesOrderItems.Comma
                 .NotNull().WithMessage("Case Qty alanı boş olamaz.")
                 .GreaterThan(0).WithMessage("Case Qty 0'dan büyük olmalıdır.");
 
+            RuleFor(x => x.ShelfLifeValue)
+                .NotNull().WithMessage("Raf ömrü değeri boş olamaz.")
+                .GreaterThanOrEqualTo(0).WithMessage("Raf ömrü değeri negatif olamaz.");
+
+            RuleFor(x => x.ShelfLifeUnit)
+                .NotNull().WithMessage("Raf ömrü birimini seçiniz.")
+                .IsInEnum().WithMessage("Geçerli bir raf ömrü birimi seçiniz.");
+
             //RuleFor(x => x.SapValidatedAt)
             //    .NotNull().WithMessage("Sap Validated At alanı boş olamaz.");
 

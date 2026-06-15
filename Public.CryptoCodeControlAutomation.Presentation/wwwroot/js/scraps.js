@@ -14,6 +14,7 @@
     const existingCodes = new Set();
     const allowedCodes = new Map();
     let allowedCodesLoaded = false;
+    let scrapsScannerSource = null;
 
     if (!codeInput || !addButton || !tableBody) return;
     if (tbInput) {
@@ -29,6 +30,13 @@
 
     const normalizeCode = (value) => {
         return (value || "").replace(/\|9(1|2|3)/g, "\u001D9$1");
+    };
+
+    const normalizePlannedOrderNo = (value) => {
+        const plannedOrderNo = (value || "").trim();
+        return /^\d+$/.test(plannedOrderNo)
+            ? plannedOrderNo.padStart(8, "0")
+            : plannedOrderNo;
     };
 
     const ensureEmptyRow = () => {
@@ -114,11 +122,69 @@
         return true;
     };
 
+    const processScannedCode = (rawCode) => {
+        if (!canAddCode()) return false;
+
+        const code = normalizeCode(rawCode).trim();
+        if (!code) return false;
+
+        if (rawScanDisplay) {
+            rawScanDisplay.textContent = code;
+        }
+
+        addRow(code);
+        return true;
+    };
+
     const handleAdd = () => {
-        if (!canAddCode()) return;
-        addRow(codeInput.value);
+        if (!processScannedCode(codeInput.value)) return;
+
         codeInput.value = "";
         codeInput.focus();
+    };
+
+    const getResponseMessage = async (response) => {
+        try {
+            const body = await response.json();
+            return body?.message || "Endüstriyel el terminali bağlantısı başlatılamadı.";
+        }
+        catch {
+            return "Endüstriyel el terminali bağlantısı başlatılamadı.";
+        }
+    };
+
+    const startScrapsScanner = async () => {
+        try {
+            const response = await fetch("/Codes/StartScrapsScanner", {
+                method: "POST"
+            });
+
+            if (!response.ok) {
+                throw new Error(await getResponseMessage(response));
+            }
+
+            scrapsScannerSource = new EventSource("/Codes/ScrapsScannerStream");
+
+            scrapsScannerSource.addEventListener("code", (event) => {
+                const message = JSON.parse(event.data);
+                const value = message?.value ?? "";
+
+                codeInput.value = value;
+                processScannedCode(value);
+                codeInput.value = "";
+                codeInput.focus();
+            });
+
+            scrapsScannerSource.onerror = () => {
+                console.warn("Scraps scanner bağlantısı yeniden kurulmaya çalışılıyor.");
+            };
+        }
+        catch (error) {
+            Toast?.fire({
+                icon: "error",
+                title: error?.message || "Endüstriyel el terminali bağlantısı başlatılamadı."
+            });
+        }
     };
 
     if (tbInput) {
@@ -243,11 +309,13 @@
             if (event.key !== "Enter") return;
             event.preventDefault();
 
-            const plannedOrderNo = plannedOrderInput.value.trim();
+            const plannedOrderNo = normalizePlannedOrderNo(plannedOrderInput.value);
             if (!plannedOrderNo) {
                 Toast?.fire({ icon: "warning", title: "Planlı sipariş no giriniz." });
                 return;
             }
+
+            plannedOrderInput.value = plannedOrderNo;
 
             const shouldCloseSwal = !!window.Swal;
             if (shouldCloseSwal) {
@@ -306,9 +374,6 @@
     codeInput.addEventListener("keydown", (event) => {
         if (event.key !== "Enter") return;
         event.preventDefault();
-        if (rawScanDisplay) {
-            rawScanDisplay.textContent = codeInput.value;
-        }
         handleAdd();
     });
 
@@ -369,4 +434,9 @@
     });
 
     updateCount();
+    startScrapsScanner();
+
+    window.addEventListener("beforeunload", () => {
+        scrapsScannerSource?.close();
+    });
 })();

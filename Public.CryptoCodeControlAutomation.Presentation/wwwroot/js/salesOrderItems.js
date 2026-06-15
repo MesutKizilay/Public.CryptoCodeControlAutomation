@@ -194,6 +194,20 @@
         dt.ajax.reload(null, true);
     });
 
+    $('#add-shelfLifeUnit').select2({
+        placeholder: 'Birim seçiniz',
+        allowClear: true,
+        width: '100%',
+        dropdownParent: $('#offcanvasAddLabel')
+    });
+
+    $('#edit-shelfLifeUnit').select2({
+        placeholder: 'Birim seçiniz',
+        allowClear: true,
+        width: '100%',
+        dropdownParent: $('#offcanvasEditLabel')
+    });
+
     // ============================
     // Helpers
     // ============================
@@ -202,6 +216,8 @@
         $('#add-gtin').val('');
         $('#add-plannedUnitQty').val('');
         $('#add-caseQty').val('');
+        $('#add-shelfLifeValue').val('');
+        $('#add-shelfLifeUnit').val('').trigger('change');
         $('#add-message').val('');
     }
 
@@ -210,6 +226,8 @@
         $('#edit-gtin').val('');
         $('#edit-plannedUnitQty').val('');
         $('#edit-caseQty').val('');
+        $('#edit-shelfLifeValue').val('');
+        $('#edit-shelfLifeUnit').val('').trigger('change');
         // edit modalÄ±nda message input yoksa sorun deÄŸil; varsa temizlemek istersen aÃ§:
         // $('#edit-message').val('');
     }
@@ -407,6 +425,8 @@
         formData.append('gtin', $('#add-gtin').val()?.trim() || '');
         formData.append('sapPlannedUnitQty', $('#add-plannedUnitQty').val() || 0);
         formData.append('sapCaseQty', $('#add-caseQty').val() || null);
+        formData.append('shelfLifeValue', $('#add-shelfLifeValue').val() ?? '');
+        formData.append('shelfLifeUnit', $('#add-shelfLifeUnit').val() ?? '');
         //formData.append('sapValidatedAt', new Date().toISOString());
 
         if (dropzoneAdd && dropzoneAdd.files.length > 0) {
@@ -454,6 +474,8 @@
                 $('#edit-gtin').val(res.gtin);
                 $('#edit-plannedUnitQty').val(res.sapPlannedUnitQty);
                 $('#edit-caseQty').val(res.sapCaseQty);
+                $('#edit-shelfLifeValue').val(res.shelfLifeValue);
+                $('#edit-shelfLifeUnit').val(res.shelfLifeUnit?.toString() ?? '').trigger('change');
                 editSapValidatedAt = res.sapValidatedAt || new Date().toISOString();
 
                 bootstrap.Offcanvas.getOrCreateInstance('#offcanvasEditLabel').show();
@@ -473,6 +495,8 @@
             gtin: $('#edit-gtin').val()?.trim(),
             sapPlannedUnitQty: $('#edit-plannedUnitQty').val(),
             sapCaseQty: $('#edit-caseQty').val(),
+            shelfLifeValue: $('#edit-shelfLifeValue').val(),
+            shelfLifeUnit: $('#edit-shelfLifeUnit').val(),
             sapValidatedAt: editSapValidatedAt
         };
 

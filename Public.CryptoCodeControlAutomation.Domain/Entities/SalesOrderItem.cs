@@ -21,6 +21,8 @@ namespace CryptoCodeControlAutomation.Domain.Entities
         public DateTime? ProductionApprovedAt { get; set; }
         public string? ShipmentApprovedByUsername { get; set; }
         public DateTime? ShipmentApprovedAt { get; set; }
+        public int ShelfLifeValue { get; set; }
+        public ShelfLifeUnit ShelfLifeUnit { get; set; }
         public DateTime? SapValidatedAt { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }

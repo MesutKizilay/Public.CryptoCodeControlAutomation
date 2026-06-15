@@ -18,6 +18,8 @@ namespace CryptoCodeControlAutomation.Application.Features.SalesOrderItems.Comma
         public string? GTIN { get; set; }
         public int SapPlannedUnitQty { get; set; }
         public int? SapCaseQty { get; set; }
+        public int? ShelfLifeValue { get; set; }
+        public ShelfLifeUnit? ShelfLifeUnit { get; set; }
         public DateTime? SapValidatedAt { get; set; }
         public IFormFile? File { get; set; }
         public string? UploadsBasePath { get; set; }
@@ -52,6 +54,8 @@ namespace CryptoCodeControlAutomation.Application.Features.SalesOrderItems.Comma
                 salesOrderItem.IsOpen = false;
                 salesOrderItem.Status = SalesOrderItemStatus.Passive;
                 salesOrderItem.ApprovalStatus = SalesOrderItemApprovalStatus.PendingApproval;
+                salesOrderItem.ShelfLifeValue = request.ShelfLifeValue!.Value;
+                salesOrderItem.ShelfLifeUnit = request.ShelfLifeUnit!.Value;
                 //salesOrderItem.RemainingUnitQty = request.SapPlannedUnitQty;
 
                 await _salesOrderItemRepository.Add(salesOrderItem, cancellationToken);

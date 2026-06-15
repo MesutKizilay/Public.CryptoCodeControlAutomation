@@ -14,8 +14,12 @@ namespace CryptoCodeControlAutomation.Application.Features.SalesOrderItems.Profi
         {
             CreateMap<SalesOrderItem, GetListSalesOrderItemDto>().ReverseMap();
             CreateMap<Paginate<SalesOrderItem>, Paginate<GetListSalesOrderItemDto>>().ReverseMap();
-            CreateMap<CreateSalesOrderItemCommand, SalesOrderItem>();
-            CreateMap<UpdateSalesOrderItemCommand, SalesOrderItem>();
+            CreateMap<CreateSalesOrderItemCommand, SalesOrderItem>()
+                .ForMember(destination => destination.ShelfLifeValue, options => options.Ignore())
+                .ForMember(destination => destination.ShelfLifeUnit, options => options.Ignore());
+            CreateMap<UpdateSalesOrderItemCommand, SalesOrderItem>()
+                .ForMember(destination => destination.ShelfLifeValue, options => options.Ignore())
+                .ForMember(destination => destination.ShelfLifeUnit, options => options.Ignore());
         }
     }
 }
