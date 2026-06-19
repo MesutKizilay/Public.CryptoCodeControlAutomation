@@ -35,6 +35,30 @@ namespace CryptoCodeControlAutomation.Application.Features.SalesOrderItems.Rules
                 await ThrowBusinessException(SalesOrderItemMessages.CanNotDeleteSalesOrderItemsWhenImporting);
         }
 
+        public async Task ActiveSalesOrderItemShouldNotExist(long salesOrderItemId)
+        {
+            bool isExists = await _salesOrderItemRepository.Any(s => s.SalesOrderItemId != salesOrderItemId && s.Status == SalesOrderItemStatus.Active);
+
+            if (isExists)
+                await ThrowBusinessException(SalesOrderItemMessages.ActiveSalesOrderItemAlreadyExists);
+        }
+
+        public async Task SapPlannedUnitQtyShouldNotExceedImportedCodeCount(long salesOrderItemId, int sapPlannedUnitQty)
+        {
+            List<UploadJob> uploadJobs = await _uploadJobRepository.GetList(
+                predicate: u => u.SalesOrderItemId == salesOrderItemId && u.Status == UploadJobStatus.Done
+            );
+
+            if (uploadJobs.Count == 0)
+                return;
+
+            int insertedRows = uploadJobs.Sum(u => u.InsertedRows ?? 0);
+            int requiredCodeCount = (int)Math.Ceiling(sapPlannedUnitQty * 1.05m);
+
+            if (requiredCodeCount > insertedRows)
+                await ThrowBusinessException($"{SalesOrderItemMessages.SapPlannedUnitQtyExceedsImportedCodeCount} Planlanan: {sapPlannedUnitQty}, Yüklenen Kod: {insertedRows}, Beklenen: {requiredCodeCount}.");
+        }
+
         public async Task AreThereProducedCodes(long salesOrderItemId)
         {
             bool isExists = await _codeRepository.Any(u => u.SalesOrderItemId == salesOrderItemId && u.Status == CodeStatus.ProducedOk);

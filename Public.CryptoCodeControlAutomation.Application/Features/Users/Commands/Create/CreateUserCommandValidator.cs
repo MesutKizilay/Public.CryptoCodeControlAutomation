@@ -15,7 +15,7 @@ namespace CryptoCodeControlAutomation.Application.Features.Users.Commands.Create
 
             RuleFor(u => u.PasswordHash)
                 .NotEmpty().When(u => !u.RequiresLdapAuthentication)
-                .WithMessage("LDAP kullanılmayan kullanıcılar için şifre giriniz.");
+                .WithMessage("Lütfen şifre alanını doldurunuz.");
 
             RuleFor(u => u.FullName).NotEmpty().WithMessage("Lütfen tam ad alanını doldurunuz.");
                                  //.EmailAddress().WithMessage("Lütfen uygun formatta mail giriniz.");

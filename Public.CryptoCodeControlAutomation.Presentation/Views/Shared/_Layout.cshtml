@@ -178,16 +178,16 @@
                             <div data-i18n="Dashboard">Ana Sayfa</div>
                         </a>
                     </li> *@
-                    @if (User.IsInRole("Admin") || User.IsInRole("Supervisor"))
-                    {
+                    @* @if (User.IsInRole("Admin") || User.IsInRole("Supervisor"))
+                    { *@
                         <li class="menu-item">
-                            <a href="/Dashboard/Dashboard" class="menu-link" data-active-when="/,/home,/home/index">
+                            <a href="/Dashboard/Dashboard" class="menu-link" >
                                 <i class="menu-icon tf-icons bx bx-bar-chart-alt-2"></i>
                                 <div data-i18n="Dashboard">Dashboard</div>
                             </a>
                         </li>
                         <li class="menu-item">
-                            <a href="/SalesOrderItems/SalesOrderItems" class="menu-link">
+                            <a href="/SalesOrderItems/SalesOrderItems" class="menu-link" data-active-when="/,/home,/home/index">
                                 <i class="menu-icon tf-icons bx bx-cart-alt"></i>
                                 <div data-i18n="List">Satış Siparişleri</div>
                             </a>
@@ -198,7 +198,7 @@
                                 <div data-i18n="List">Sipariş Onayları</div>
                             </a>
                         </li>
-                    }
+                    @* } *@
 
 
                     <li class="menu-item">
@@ -213,21 +213,27 @@
                             <div data-i18n="List">Fire İşlemleri</div>
                         </a>
                     </li>
-                    @* <li class="menu-item">
-                        <a href="/DataMatrixPrints/DataMatrixPrints" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-qr"></i>
-                            <div data-i18n="List">DataMatrix PDF</div>
+                    <li class="menu-item">
+                        <a href="/Codes/CodeLookup" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-search-alt"></i>
+                            <div data-i18n="List">Kod Sorgulama</div>
                         </a>
-                    </li> *@
-                    @if (User.IsInRole("Admin") || User.IsInRole("Supervisor"))
-                    {
+                    </li>
+                    <li class="menu-item">
+                        <a href="/DatamatrixPrints/DatamatrixPrints" class="menu-link">
+                            <i class="menu-icon tf-icons bx bx-qr"></i>
+                            <div data-i18n="List">Datamatrix PDF</div>
+                        </a>
+                    </li>
+                    @* @if (User.IsInRole("Admin") || User.IsInRole("Supervisor"))
+                    { *@
 
-                        @* <li class="menu-item">
+                        <li class="menu-item">
                             <a href="/Codes/CodeReports" class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-file"></i>
                                 <div data-i18n="List">Kripto Kod Havuzu</div>
                             </a>
-                        </li> *@
+                        </li>
 
                         <li class="menu-item">
                             <a href="/Users/Users" class="menu-link">
@@ -249,7 +255,7 @@
                                 <div data-i18n="Users">Test</div>
                             </a>
                         </li> *@
-                    }
+                    @* } *@
                 </ul>
             </aside>
             <!-- / Menu -->

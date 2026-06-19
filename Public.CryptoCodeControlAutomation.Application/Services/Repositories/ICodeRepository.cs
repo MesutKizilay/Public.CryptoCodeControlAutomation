@@ -1,6 +1,7 @@
+using Core.Persistence.Repositories;
+using CryptoCodeControlAutomation.Application.Features.Codes.Queries.GetCodeLookup;
 using CryptoCodeControlAutomation.Domain.Entities;
 using CryptoCodeControlAutomation.Domain.Enums;
-using Core.Persistence.Repositories;
 
 namespace CryptoCodeControlAutomation.Application.Services.Repositories
 {
@@ -8,5 +9,7 @@ namespace CryptoCodeControlAutomation.Application.Services.Repositories
     {
         Task<int> UpdateScrapCodes(List<long> ids, CodeStatus status, CancellationToken cancellationToken = default);
         Task<int> UpdateRecoverCodes(List<long> ids, CodeStatus status, CancellationToken cancellationToken = default);
+        Task<GetCodeLookupDto?> GetCodeLookup(string code, CancellationToken cancellationToken = default);
+
     }
 }

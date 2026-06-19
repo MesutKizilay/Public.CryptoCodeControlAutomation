@@ -1,12 +1,15 @@
 $(function () {
+    const codeInput = $("#code-report-code");
     const salesSelect = $("#code-report-salesorder");
     const plannedSelect = $("#code-report-plannedorder");
     const statusSelect = $("#code-report-status");
     const filterButton = $("#code-report-filter-btn");
     const exportButton = $("#code-report-export-btn");
     const onlyCodesCheckbox = $("#code-report-only-codes");
+    const shiftDateInput = document.querySelector("#flatpickr-range");
 
     let plannedItems = [];
+    let selectedShiftDates = [];
 
     const statusLabels = {
         0: "Avaılable",
@@ -31,6 +34,49 @@ $(function () {
         plannedSelect.select2({ placeholder: "Planlı Sipariş", width: "100%", allowClear: true });
         statusSelect.select2({ placeholder: "Kod Durumu", width: "100%", allowClear: true });
     };
+
+    const initShiftDatePicker = () => {
+        if (!shiftDateInput || typeof flatpickr !== "function") return;
+
+        flatpickr(shiftDateInput, {
+            mode: "range",
+            dateFormat: "Y-m-d",
+            monthSelectorType: "static",
+            conjunction: " to ",
+            onChange: function (selectedDates) {
+                selectedShiftDates = selectedDates.slice(0, 2);
+            },
+            onClose: function (selectedDates) {
+                selectedShiftDates = selectedDates.slice(0, 2);
+            }
+        });
+    };
+
+    const formatDateForRequest = (date) => {
+        if (!(date instanceof Date) || Number.isNaN(date.getTime())) return null;
+
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+        //return `${day}-${month}-${year}`;
+    };
+
+    const getShiftDateFilter = () => {
+        if (selectedShiftDates.length === 0) {
+            return { shiftDateStart: null, shiftDateEnd: null };
+        }
+
+        const startDate = selectedShiftDates[0];
+        const endDate = selectedShiftDates[1] ?? selectedShiftDates[0];
+
+        return {
+            shiftDateStart: formatDateForRequest(startDate),
+            shiftDateEnd: formatDateForRequest(endDate)
+        };
+    };
+
+    const getCodeValueFilter = () => (codeInput.val() ?? "").toString().trim();
 
     const clearSelect = ($select) => {
         $select.empty();
@@ -96,6 +142,7 @@ $(function () {
     };
 
     initSelect2();
+    initShiftDatePicker();
     loadSalesOrders();
     clearSelect(plannedSelect);
     loadPlannedOrders();
@@ -120,11 +167,16 @@ $(function () {
             const salesOrderItemId = Number(salesSelect.val());
             const plannedOrderId = Number(plannedSelect.val());
             const statusValue = statusSelect.val();
+            const shiftDateFilter = getShiftDateFilter();
+            const codeValue = getCodeValueFilter();
 
             const payload = {
+                codeValue: codeValue || null,
                 salesOrderItemId: Number.isFinite(salesOrderItemId) ? salesOrderItemId : null,
                 plannedOrderId: Number.isFinite(plannedOrderId) ? plannedOrderId : null,
-                status: statusValue !== "" && statusValue !== null ? Number(statusValue) : null
+                status: statusValue !== "" && statusValue !== null ? Number(statusValue) : null,
+                shiftDateStart: shiftDateFilter.shiftDateStart,
+                shiftDateEnd: shiftDateFilter.shiftDateEnd
             };
 
             $.ajax({
@@ -165,7 +217,16 @@ $(function () {
                 render: function (d) {
                     if (!d) return '';
                     const dt = new Date(d);
-                    return dt.toLocaleString('tr-TR');
+                    return dt.toLocaleDateString('tr-TR');
+                }
+            },
+            {
+                data: 'expirationDate',
+                title: 'SKT',
+                render: function (d) {
+                    if (!d) return '';
+                    const dt = new Date(d);
+                    return dt.toLocaleDateString('tr-TR');
                 }
             },
         ],
@@ -220,12 +281,16 @@ $(function () {
         const plannedOrderId = Number(plannedSelect.val());
         const statusValue = statusSelect.val();
         const onlyCodes = onlyCodesCheckbox.is(":checked");
+        const shiftDateFilter = getShiftDateFilter();
+        const codeValue = getCodeValueFilter();
 
+        const hasCodeValue = codeValue.length > 0;
         const hasSalesOrder = Number.isFinite(salesOrderItemId) && salesOrderItemId > 0;
         const hasPlannedOrder = Number.isFinite(plannedOrderId) && plannedOrderId > 0;
         const hasStatus = statusValue !== "" && statusValue !== null;
+        const hasShiftDate = shiftDateFilter.shiftDateStart !== null;
 
-        if (!hasSalesOrder && !hasPlannedOrder && !hasStatus) {
+        if (!hasCodeValue && !hasSalesOrder && !hasPlannedOrder && !hasStatus && !hasShiftDate) {
             Toast?.fire({
                 icon: "warning",
                 title: "Lütfen en az bir filtre seçin."
@@ -234,10 +299,13 @@ $(function () {
         }
 
         const payload = {
+            codeValue: hasCodeValue ? codeValue : null,
             salesOrderItemId: hasSalesOrder ? salesOrderItemId : null,
             plannedOrderId: hasPlannedOrder ? plannedOrderId : null,
             status: hasStatus ? Number(statusValue) : null,
-            onlyCodes: onlyCodes
+            onlyCodes: onlyCodes,
+            shiftDateStart: shiftDateFilter.shiftDateStart,
+            shiftDateEnd: shiftDateFilter.shiftDateEnd
         };
 
         const defaultFileName = buildExportFileName();

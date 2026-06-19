@@ -77,7 +77,12 @@
                 render: function (d, type, row) {
                     switch (d) {
                         case 0:
-                            return '<span class="badge bg-success">Aktif</span>';
+                            return `<button type="button"
+                                            class="badge bg-success border-0 js-complete-sales-order"
+                                            data-id="${row.salesOrderItemId}"
+                                            title="Satış siparişini tamamlandı olarak işaretle">
+                                        Aktif
+                                    </button>`;
                         case 1:
                             return '<span class="badge bg-primary">Tamamlandı</span>';
                         case 2:
@@ -394,20 +399,30 @@
                 const lineCount = rows.length;
                 const expected = Math.ceil(plannedQty * 1.05);
 
-                if (lineCount !== expected) {
-                   const result = await Swal.fire({
-                       title: 'Dosyadaki kod adeti fire miktarını(%5) karşılamıyor',
-                       text: `Planlanan: ${plannedQty} | Dosya: ${lineCount} | Beklenen: ${expected}. Yüklemeye devam edilsin mi?`,
-                       icon: 'warning',
-                       showCancelButton: true,
-                       confirmButtonText: 'Devam',
-                       cancelButtonText: 'Vazgeç'
-                   });
+                if (lineCount < expected) {
+                    Toast?.fire({
+                        icon: 'error',
+                        title: `Dosyadaki kod adedi yetersiz. Planlanan: ${plannedQty} | Dosya: ${lineCount} | Beklenen: ${expected}`
+                    });
 
-                   if (!result.isConfirmed) {
-                       releaseSubmit();
-                       return;
-                   }
+                    releaseSubmit();
+                    return;
+                }
+
+                if (lineCount !== expected) {
+                    const result = await Swal.fire({
+                        title: 'Dosyadaki kod adeti fire miktarını(%5) karşılamıyor',
+                        text: `Planlanan: ${plannedQty} | Dosya: ${lineCount} | Beklenen: ${expected}. Yüklemeye devam edilsin mi?`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Devam',
+                        cancelButtonText: 'Vazgeç'
+                    });
+
+                    if (!result.isConfirmed) {
+                        releaseSubmit();
+                        return;
+                    }
                 }
             }
             catch (err) {
@@ -551,6 +566,46 @@
             if (!r.isConfirmed) return;
             dt.ajax.reload(null, false);
             Toast?.fire({ icon: 'success', title: 'Satış siparişi aktifleştirildi.' });
+        });
+    });
+
+    // ============================
+    // Complete
+    // ============================
+    $('#salesOrderItemTable').on('click', '.js-complete-sales-order', function (e) {
+        e.preventDefault();
+        const id = $(this).data('id');
+
+        Swal.fire({
+            title: 'Siparişini tamamlamak istediğinizden emin misiniz?',
+            text: 'Bu işlem üretimi durduracak ve geri alınamayacaktır. Yalnızca üretim gerçekten bittiyse tamamlandı olarak işaretleyiniz.',
+            icon: 'warning',
+            showCancelButton: true,
+            cancelButtonText: 'Vazgeç',
+            confirmButtonText: 'Tamamlandı',
+            confirmButtonColor: '#696cff',
+            cancelButtonColor: '#6c757d',
+            showLoaderOnConfirm: true,
+            backdrop: true,
+            allowOutsideClick: () => !Swal.isLoading(),
+            preConfirm: async () => {
+                try {
+                    await $.ajax({
+                        url: '/SalesOrderItems/Complete',
+                        type: 'POST',
+                        data: { salesOrderItemId: id }
+                    });
+                    return true;
+                }
+                catch (xhr) {
+                    parseErrorResponse?.(xhr);
+                    return false;
+                }
+            }
+        }).then((r) => {
+            if (!r.isConfirmed) return;
+            dt.ajax.reload(null, false);
+            Toast?.fire({ icon: 'success', title: 'Satış siparişi tamamlandı olarak işaretlendi.' });
         });
     });
 
@@ -722,7 +777,7 @@
             //        done();
             //        return;
             //    }
-            
+
             //    done('Sadece .csv dosyaları kabul edilir.');
             //    this.removeFile(file);
             //    Toast?.fire({ icon: 'error', title: 'Sadece .csv dosyaları kabul edilir.' });

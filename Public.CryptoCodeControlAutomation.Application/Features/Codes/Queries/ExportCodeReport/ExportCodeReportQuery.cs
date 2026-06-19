@@ -12,7 +12,10 @@ namespace CryptoCodeControlAutomation.Application.Features.Codes.Queries.ExportC
         public long? SalesOrderItemId { get; set; }
         public long? PlannedOrderId { get; set; }
         public CodeStatus? Status { get; set; }
+        public string? CodeValue { get; set; }
         public bool OnlyCodes { get; set; }
+        public DateTime? ShiftDateStart { get; set; }
+        public DateTime? ShiftDateEnd { get; set; }
 
         public class ExportCodeReportQueryHandler : IRequestHandler<ExportCodeReportQuery, ExportCodeReportDto>
         {
@@ -35,6 +38,12 @@ namespace CryptoCodeControlAutomation.Application.Features.Codes.Queries.ExportC
 
                 var codeQuery = codes.AsQueryable();
 
+                if (!string.IsNullOrWhiteSpace(request.CodeValue))
+                {
+                    var codeValue = request.CodeValue.Trim();
+                    codeQuery = codeQuery.Where(c => c.CodeValue == codeValue);
+                }
+
                 if (request.SalesOrderItemId.HasValue && request.SalesOrderItemId.Value > 0)
                 {
                     codeQuery = codeQuery.Where(c => c.SalesOrderItemId == request.SalesOrderItemId.Value);
@@ -50,6 +59,27 @@ namespace CryptoCodeControlAutomation.Application.Features.Codes.Queries.ExportC
                     codeQuery = codeQuery.Where(c => c.Status == request.Status.Value);
                 }
 
+                var shiftDateStart = request.ShiftDateStart?.Date;
+                var shiftDateEnd = request.ShiftDateEnd?.Date;
+
+                if (shiftDateStart.HasValue && shiftDateEnd.HasValue && shiftDateStart > shiftDateEnd)
+                {
+                    (shiftDateStart, shiftDateEnd) = (shiftDateEnd, shiftDateStart);
+                }
+
+                if (shiftDateStart.HasValue)
+                {
+                    codeQuery = codeQuery.Where(c => c.ShiftDate.HasValue &&
+                                                     c.ShiftDate.Value >= shiftDateStart.Value);
+                }
+
+                if (shiftDateEnd.HasValue)
+                {
+                    var shiftDateEndExclusive = shiftDateEnd.Value.AddDays(1);
+                    codeQuery = codeQuery.Where(c => c.ShiftDate.HasValue &&
+                                                     c.ShiftDate.Value < shiftDateEndExclusive);
+                }
+
                 var query = from c in codeQuery
                             join s in sales on c.SalesOrderItemId equals s.SalesOrderItemId
                             join p in planned on c.PlannedOrderId equals p.PlannedOrderId into pjoin
@@ -61,7 +91,8 @@ namespace CryptoCodeControlAutomation.Application.Features.Codes.Queries.ExportC
                                 SalesOrderNo = s.SalesOrderNo,
                                 SalesItemNo = s.SalesItemNo,
                                 PlannedOrderNo = p != null ? p.PlannedOrderNo : string.Empty,
-                                ProducedAt = c.ProducedAt,
+                                ProducedAt = c.ShiftDate,
+                                ExpirationDate = c.ExpirationDate,
                                 RecoverAt = c.RecoverAt,
                                 UpdatedAt = c.UpdatedAt
                             };
@@ -94,7 +125,7 @@ namespace CryptoCodeControlAutomation.Application.Features.Codes.Queries.ExportC
                     return sb.ToString();
                 }
 
-                sb.AppendLine("Code\tSalesOrderNo\tSalesItemNo\tPlannedOrderNo\tStatus\tProduced At");
+                sb.AppendLine("Code\tSalesOrderNo\tSalesItemNo\tPlannedOrderNo\tStatus\tProduced At\tExpirationDate");
 
                 foreach (var item in items)
                 {
@@ -109,7 +140,9 @@ namespace CryptoCodeControlAutomation.Application.Features.Codes.Queries.ExportC
                     sb.Append('\t');
                     sb.Append(NormalizeExportValue(item.Status.ToString()));
                     sb.Append('\t');
-                    sb.AppendLine(item.ProducedAt?.ToString("dd.MM.yyyy HH:mm:ss"));
+                    sb.Append(item.ProducedAt?.ToString("dd.MM.yyyy"));
+                    sb.Append('\t');
+                    sb.AppendLine(item.ExpirationDate?.ToString("dd.MM.yyyy"));
                 }
 
                 return sb.ToString();

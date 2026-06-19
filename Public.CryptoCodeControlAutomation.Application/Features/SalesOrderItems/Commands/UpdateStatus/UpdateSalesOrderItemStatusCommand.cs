@@ -25,7 +25,8 @@ namespace CryptoCodeControlAutomation.Application.Features.SalesOrderItems.Comma
 
             public async Task Handle(UpdateSalesOrderItemStatusCommand request, CancellationToken cancellationToken)
             {
-                await _salesOrderItemBusinessRules.WasUploadJobImported(request.SalesOrderItemId);
+                await _salesOrderItemBusinessRules.WasUploadJobImported(request.SalesOrderItemId);                
+                await _salesOrderItemBusinessRules.ActiveSalesOrderItemShouldNotExist(request.SalesOrderItemId);
 
                 var salesOrderItem = await _salesOrderItemRepository.Get(predicate: item => item.SalesOrderItemId == request.SalesOrderItemId,
                                                                          withDeleted: false,
@@ -36,6 +37,7 @@ namespace CryptoCodeControlAutomation.Application.Features.SalesOrderItems.Comma
 
                 if (salesOrderItem.Status != SalesOrderItemStatus.Passive)
                     throw new BusinessException("Yalnızca pasif satış siparişleri aktifleştirilebilir.");
+
 
                 try
                 {

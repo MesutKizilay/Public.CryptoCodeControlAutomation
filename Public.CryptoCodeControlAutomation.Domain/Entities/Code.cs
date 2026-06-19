@@ -15,8 +15,9 @@ namespace CryptoCodeControlAutomation.Domain.Entities
         public CodeStatus Status { get; set; }
         public DateTime? AllocatedAt { get; set; }
         public DateTime? ProducedAt { get; set; }
+        public DateTime? ShiftDate { get; set; }
+        public DateTime? ExpirationDate { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public DateTime? RecoverAt { get; set; }
-        public DateTime? ShiftDate { get; set; }
     }
 }

@@ -7,6 +7,7 @@
 
 @section Styles {
     <link rel="stylesheet" href="~/assets/vendor/libs/select2/select2.css" />
+    <link rel="stylesheet" href="~/assets/vendor/libs/flatpickr/flatpickr.css" />
     <link rel="stylesheet" href="~/assets/vendor/libs/datatables-bs5/datatables.bootstrap5.css" />
     <link rel="stylesheet" href="~/assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.css" />
 }
@@ -19,15 +20,23 @@
     <div class="card-body">
         <div class="row g-3 align-items-end">
             <div class="col-md-3">
-                <label class="form-label" for="code-report-salesorder">Sales Order Item</label>
+                <label class="form-label" for="code-report-code">Kod</label>
+                <input id="code-report-code"
+                       type="text"
+                       class="form-control"
+                       placeholder="Kod ile ara"
+                       autocomplete="off" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label" for="code-report-salesorder">Satış Siparişi</label>
                 <select id="code-report-salesorder" class="form-select"></select>
             </div>
             <div class="col-md-2">
-                <label class="form-label" for="code-report-plannedorder">Planned Order</label>
+                <label class="form-label" for="code-report-plannedorder">Planlı Sipariş</label>
                 <select id="code-report-plannedorder" class="form-select"></select>
             </div>
             <div class="col-md-2">
-                <label class="form-label" for="code-report-status">Status</label>
+                <label class="form-label" for="code-report-status">Durum</label>
                 <select id="code-report-status" class="form-select">
                     <option></option>
                     @foreach (var status in Enum.GetValues<CodeStatus>())
@@ -37,16 +46,33 @@
                 </select>
             </div>
             <div class="col-md-2">
+                <label for="flatpickr-range" class="form-label">
+                    Üretim Tarihi
+                </label>
+                <input type="text"
+                       class="form-control"
+                       placeholder="Tarih aralığı seçin"
+                       id="flatpickr-range"
+                       autocomplete="off" />
+            </div>
+            <div class="col-md-2">
                 <div class="form-check mb-1">
                     <input class="form-check-input" type="checkbox" id="code-report-only-codes">
                     <label class="form-check-label" for="code-report-only-codes">Sadece kodları indir</label>
                 </div>
             </div>
-            <div class="col-md-1">
-                <button id="code-report-filter-btn" class="btn btn-primary w-100">Filtrele</button>
+        </div>
+
+        <div class="d-flex flex-wrap justify-content-end gap-2 mt-4">
+            <div>
+                <button id="code-report-filter-btn" class="btn btn-primary">
+                    <i class="bx bx-filter-alt me-1"></i>Filtrele
+                </button>
             </div>
-            <div class="col-md-2">
-                <button id="code-report-export-btn" class="btn btn-outline-primary w-100">Dışa Aktar</button>
+            <div>
+                <button id="code-report-export-btn" class="btn btn-outline-primary">
+                    <i class="bx bx-download me-1"></i>Dışa Aktar
+                </button>
             </div>
         </div>
 
@@ -71,6 +97,7 @@
 
 @section Scripts {
     <script src="~/assets/vendor/libs/select2/select2.js"></script>
+    <script src="~/assets/vendor/libs/flatpickr/flatpickr.js"></script>
     <script src="~/assets/vendor/libs/datatables-bs5/datatables-bootstrap5.js"></script>
     <script src="~/js/codeReports.js"></script>
 }

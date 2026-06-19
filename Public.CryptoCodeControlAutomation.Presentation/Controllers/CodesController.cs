@@ -2,6 +2,7 @@
 using CryptoCodeControlAutomation.Application.Features.Codes.Commands.RecoverCodes;
 using CryptoCodeControlAutomation.Application.Features.Codes.Commands.ScrapCodes;
 using CryptoCodeControlAutomation.Application.Features.Codes.Queries.ExportCodeReport;
+using CryptoCodeControlAutomation.Application.Features.Codes.Queries.GetCodeLookup;
 using CryptoCodeControlAutomation.Application.Features.Codes.Queries.GetCodeReportList;
 using CryptoCodeControlAutomation.Application.Features.Codes.Queries.GetListCodesByPlannedOrderId;
 using CryptoCodeControlAutomation.Application.Features.PlannedOrders.Queries.GetPlannedOrderByPalletNumber;
@@ -35,6 +36,11 @@ namespace CryptoCodeControlAutomation.Presentation.Controllers
             return View();
         }
 
+        public IActionResult CodeLookup()
+        {
+            return View();
+        }
+
         [HttpPost]
         public Task<IActionResult> StartRecoverScanner()
         {
@@ -43,6 +49,12 @@ namespace CryptoCodeControlAutomation.Presentation.Controllers
 
         [HttpPost]
         public Task<IActionResult> StartScrapsScanner()
+        {
+            return StartScanner();
+        }
+
+        [HttpPost]
+        public Task<IActionResult> StartCodeLookupScanner()
         {
             return StartScanner();
         }
@@ -72,6 +84,12 @@ namespace CryptoCodeControlAutomation.Presentation.Controllers
 
         [HttpGet]
         public Task ScrapsScannerStream(CancellationToken cancellationToken)
+        {
+            return StreamScanner(cancellationToken);
+        }
+
+        [HttpGet]
+        public Task CodeLookupScannerStream(CancellationToken cancellationToken)
         {
             return StreamScanner(cancellationToken);
         }
@@ -136,6 +154,13 @@ namespace CryptoCodeControlAutomation.Presentation.Controllers
         public async Task<IActionResult> RecoverCodes([FromBody] RecoverCodesCommand recoverCodesCommand)
         {
             var result = await Mediator.Send(recoverCodesCommand);
+            return Json(result);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetCodeLookup([FromBody] GetCodeLookupQuery query)
+        {
+            var result = await Mediator.Send(query);
             return Json(result);
         }
 

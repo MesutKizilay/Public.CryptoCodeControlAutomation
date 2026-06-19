@@ -1,5 +1,6 @@
 using Core.Application.Request;
 using Core.Persistence.Dynamic;
+using CryptoCodeControlAutomation.Application.Features.SalesOrderItems.Commands.Complete;
 using CryptoCodeControlAutomation.Application.Features.SalesOrderItems.Commands.Create;
 using CryptoCodeControlAutomation.Application.Features.SalesOrderItems.Commands.Delete;
 using CryptoCodeControlAutomation.Application.Features.SalesOrderItems.Commands.Update;
@@ -101,6 +102,13 @@ namespace CryptoCodeControlAutomation.Presentation.Controllers
 
         [HttpPost]
         public async Task<IActionResult> UpdateStatus(UpdateSalesOrderItemStatusCommand command)
+        {
+            await Mediator.Send(command);
+            return Json(true);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Complete(CompleteSalesOrderItemCommand command)
         {
             await Mediator.Send(command);
             return Json(true);

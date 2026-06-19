@@ -171,5 +171,66 @@ namespace CryptoCodeControlAutomation.Persistence.Repositories
                 }
             });
         }
+
+        public async Task CompleteWithPlannedOrders(SalesOrderItem salesOrderItem, CancellationToken cancellationToken = default)
+        {
+            var now = DateTime.Now;
+
+            salesOrderItem.Status = SalesOrderItemStatus.Completed;
+            salesOrderItem.IsOpen = false;
+            salesOrderItem.UpdatedAt = now;
+
+            Context.SalesOrderItems.Update(salesOrderItem);
+
+            var plannedOrderIds = await Context.PlannedOrderSalesLinks
+                .Where(link => link.SalesOrderItemId == salesOrderItem.SalesOrderItemId)
+                .Select(link => link.PlannedOrderId)
+                .Distinct()
+                .ToListAsync(cancellationToken);
+
+            if (plannedOrderIds.Count > 0)
+            {
+                var plannedOrders = await Context.PlannedOrders
+                    .Where(order => plannedOrderIds.Contains(order.PlannedOrderId) &&
+                                    order.Status == PlannedOrderStatus.Active)
+                    .ToListAsync(cancellationToken);
+
+                foreach (var plannedOrder in plannedOrders)
+                {
+                    plannedOrder.Status = PlannedOrderStatus.Completed;
+                    plannedOrder.CompletedAt = now;
+                }
+            }
+
+            await Context.SaveChangesAsync(cancellationToken);
+        }
+
+        public async Task UpdateWithPlannedOrders(SalesOrderItem salesOrderItem, CancellationToken cancellationToken = default)
+        {
+            Context.SalesOrderItems.Update(salesOrderItem);
+
+            var plannedOrderIds = await Context.PlannedOrderSalesLinks
+                .Where(link => link.SalesOrderItemId == salesOrderItem.SalesOrderItemId)
+                .Select(link => link.PlannedOrderId)
+                .Distinct()
+                .ToListAsync(cancellationToken);
+
+            if (plannedOrderIds.Count > 0)
+            {
+                int totalUnitQty = (int)Math.Ceiling(salesOrderItem.SapPlannedUnitQty * 1.05m);
+
+                var plannedOrders = await Context.PlannedOrders
+                    .Where(order => plannedOrderIds.Contains(order.PlannedOrderId))
+                    .ToListAsync(cancellationToken);
+
+                foreach (var plannedOrder in plannedOrders)
+                {
+                    plannedOrder.TotalUnitQty = totalUnitQty;
+                    plannedOrder.TotalCaseQty = salesOrderItem.SapCaseQty;
+                }
+            }
+
+            await Context.SaveChangesAsync(cancellationToken);
+        }
     }
 }

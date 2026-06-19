@@ -123,7 +123,7 @@ namespace CryptoCodeControlAutomation.Presentation
             builder.Services.AddAuthorization(options =>
             {
                 options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser()
-                                                                         .RequireRole("Admin", "Supervisor")
+                                                                         .RequireRole("Admin", "Supervisor","Operator")
                                                                          .Build();
 
                 options.AddPolicy("OperatorOnly", policy =>

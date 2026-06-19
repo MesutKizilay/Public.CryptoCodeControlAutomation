@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace CryptoCodeControlAutomation.Presentation.Controllers
 {
     [Authorize(Policy = "AdminSupervisorOrOperator")]
-    public class DataMatrixPrintsController : BaseController
+    public class DatamatrixPrintsController : BaseController
     {
-        public IActionResult DataMatrixPrints()
+        public IActionResult DatamatrixPrints()
         {
             return View();
         }
