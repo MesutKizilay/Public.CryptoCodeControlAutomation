@@ -1,0 +1,218 @@
+@{
+    ViewData["Title"] = "Üretim Manipülasyonu";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/assets/vendor/libs/select2/select2.css" />
+    <link rel="stylesheet" href="~/assets/vendor/libs/flatpickr/flatpickr.css" />
+    <style>
+        .adjustment-warning {
+            border-left: 4px solid #ea5455;
+        }
+
+        .summary-card {
+            min-height: 104px;
+        }
+
+            .summary-card .summary-value {
+                font-size: 1.8rem;
+                font-weight: 700;
+                line-height: 1;
+            }
+
+            .summary-card .summary-label {
+                color: #697a8d;
+                font-size: 0.78rem;
+                font-weight: 600;
+                letter-spacing: 0;
+                text-transform: uppercase;
+            }
+
+        #adjust-daily-produced-table tbody tr[data-shift-date] {
+            cursor: pointer;
+        }
+    </style>
+}
+
+<div class="alert alert-danger adjustment-warning" role="alert">
+    <div class="fw-semibold mb-1">Dikkat: Bu ekran canlı üretim verilerini değiştirir. Manuel yapılan müdahaleler, üretim raporları ve fiziki ürünler arasında kod uyuşmazlığına sebep olacaktır. </div>
+    <div>Yapılan işlemler üretim raporlarını ve müşteriyle paylaşılan günlük adetleri etkiler. Her işlem kayıt altına alınır.</div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header border-bottom">
+        <h4 class="card-title mb-0">Üretim Manipülasyonu</h4>
+    </div>
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label" for="adjust-salesorder">Satış Siparişi</label>
+                <select id="adjust-salesorder" class="form-select"></select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label" for="adjust-plannedorder">Planlı Sipariş</label>
+                <select id="adjust-plannedorder" class="form-select"></select>
+            </div>
+            <div class="col-md-2">
+                <button id="adjust-summary-btn" class="btn btn-primary w-100">
+                    <i class="bx bx-bar-chart-alt-2 me-1"></i>Özet Getir
+                </button>
+            </div>
+            <div class="col-md-2">
+                <button id="reset-production-btn" class="btn btn-outline-danger w-100">
+                    <i class="bx bx-reset me-1"></i>Üretimi Sıfırla
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3 mb-4" id="adjust-summary-cards">
+    <div class="col-md-2">
+        <div class="card summary-card">
+            <div class="card-body">
+                <div class="summary-label">Avaılable</div>
+                <div id="adjust-summary-available" class="summary-value text-info mt-2">0</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card summary-card">
+            <div class="card-body">
+                <div class="summary-label">Allocated</div>
+                <div id="adjust-summary-allocated" class="summary-value text-primary mt-2">0</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card summary-card">
+            <div class="card-body">
+                <div class="summary-label">ProducedOk</div>
+                <div id="adjust-summary-produced" class="summary-value text-success mt-2">0</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card summary-card">
+            <div class="card-body">
+                <div class="summary-label">Reject Kurtarma</div>
+                <div id="adjust-summary-reject" class="summary-value text-warning mt-2">0</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card summary-card">
+            <div class="card-body">
+                <div class="summary-label">Scrap</div>
+                <div id="adjust-summary-scrap" class="summary-value text-danger mt-2">0</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card summary-card">
+            <div class="card-body">
+                <div class="summary-label">Voıd</div>
+                <div id="adjust-summary-void" class="summary-value text-dark mt-2">0</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header border-bottom">
+        <h5 class="card-title mb-0">Günlük Üretim</h5>
+    </div>
+    <div class="table-responsive">
+        <table id="adjust-daily-produced-table" class="table table-striped table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Üretim Tarihi</th>
+                    <th class="text-end">Üretilen Kod Adedi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="text-muted">
+                    <td colspan="2">Sipariş seçerek özet getiriniz.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header border-bottom">
+                <h5 class="card-title mb-0">Üretim Adedi</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <label class="form-label" for="adjust-status-operation">İşlem</label>
+                        <select id="adjust-status-operation" class="form-select">
+                            <option value="1-2">Allocated -> ProducedOk</option>
+                            <option value="2-1">ProducedOk -> Allocated</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="adjust-status-quantity">Adet</label>
+                        <input id="adjust-status-quantity" type="number" class="form-control" min="1" step="1" placeholder="0" />
+                    </div>
+                    <div class="col-md-6" id="adjust-status-shift-date-wrapper">
+                        <label class="form-label" for="adjust-status-shift-date">Hedef Üretim Tarihi</label>
+                        <input id="adjust-status-shift-date" type="text" class="form-control code-adjustment-date" placeholder="DD-MM-YYYY" autocomplete="off" />
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label" for="adjust-status-reason">Açıklama</label>
+                        <textarea id="adjust-status-reason" class="form-control" rows="3" maxlength="500"></textarea>
+                    </div>
+                    <div class="col-md-12 d-flex justify-content-end">
+                        <button id="adjust-status-btn" class="btn btn-danger">
+                            <i class="bx bx-transfer me-1"></i>Manipüle Et
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header border-bottom">
+                <h5 class="card-title mb-0">Üretim Tarihi</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label" for="adjust-shift-from-date">Mevcut Üretim Tarihi</label>
+                        <input id="adjust-shift-from-date" type="text" class="form-control code-adjustment-date" placeholder="DD-MM-YYYY" autocomplete="off" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="adjust-shift-to-date">Yeni Üretim Tarihi</label>
+                        <input id="adjust-shift-to-date" type="text" class="form-control code-adjustment-date" placeholder="DD-MM-YYYY" autocomplete="off" />
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label" for="adjust-shift-quantity">Adet</label>
+                        <input id="adjust-shift-quantity" type="number" class="form-control" min="1" step="1" placeholder="0" />
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label" for="adjust-shift-reason">Açıklama</label>
+                        <textarea id="adjust-shift-reason" class="form-control" rows="3" maxlength="500"></textarea>
+                    </div>
+                    <div class="col-md-12 d-flex justify-content-end">
+                        <button id="adjust-shift-btn" class="btn btn-warning">
+                            <i class="bx bx-calendar-edit me-1"></i>Manipüle Et
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/assets/vendor/libs/select2/select2.js"></script>
+    <script src="~/assets/vendor/libs/flatpickr/flatpickr.js"></script>
+    <script src="~/js/codeAdjustments.js"></script>
+}

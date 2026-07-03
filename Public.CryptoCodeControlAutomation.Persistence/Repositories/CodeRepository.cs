@@ -25,15 +25,87 @@ namespace CryptoCodeControlAutomation.Persistence.Repositories
                                                                              cancellationToken);
         }
 
-        public async Task<int> UpdateRecoverCodes(List<long> ids, CodeStatus status, CancellationToken cancellationToken = default)
+        public async Task<int> UpdateRecoverCodes(List<long> ids, CodeStatus status, int shelfLifeValue, byte shelfLifeUnit, CancellationToken cancellationToken = default)
         {
-            return await Context.Codes.Where(c => ids.Contains(c.CodeId))
-                                      .ExecuteUpdateAsync(setters => setters.SetProperty(c => c.Status, status)
-                                                                            .SetProperty(c => c.UpdatedAt, DateTime.Now)
-                                                                            .SetProperty(c => c.RecoverAt, DateTime.Now)
-                                                                            .SetProperty(c => c.ShiftDate, c => c.AllocatedAt),
-                                                                            cancellationToken);
+            var recoveredAt = DateTime.Now;
+            var query = Context.Codes.Where(c => ids.Contains(c.CodeId) && c.Status != CodeStatus.ProducedOk);
+
+            return shelfLifeUnit switch
+            {
+                0 => await query.ExecuteUpdateAsync(
+                    setters => setters.SetProperty(c => c.Status, status)
+                                      .SetProperty(c => c.ProducedAt, c => c.AllocatedAt)
+                                      .SetProperty(c => c.ShiftDate, c => c.AllocatedAt!.Value.AddHours(-8).Date)
+                                      .SetProperty(c => c.ExpirationDate, c => c.AllocatedAt!.Value.AddHours(-8).Date.AddDays(shelfLifeValue))
+                                      .SetProperty(c => c.UpdatedAt, recoveredAt)
+                                      .SetProperty(c => c.RecoverAt, recoveredAt),
+                    cancellationToken),
+                1 => await query.ExecuteUpdateAsync(
+                    setters => setters.SetProperty(c => c.Status, status)
+                                      .SetProperty(c => c.ProducedAt, c => c.AllocatedAt)
+                                      .SetProperty(c => c.ShiftDate, c => c.AllocatedAt!.Value.AddHours(-8).Date)
+                                      .SetProperty(c => c.ExpirationDate, c => c.AllocatedAt!.Value.AddHours(-8).Date.AddDays(shelfLifeValue * 7))
+                                      .SetProperty(c => c.UpdatedAt, recoveredAt)
+                                      .SetProperty(c => c.RecoverAt, recoveredAt),
+                    cancellationToken),
+                2 => await query.ExecuteUpdateAsync(
+                    setters => setters.SetProperty(c => c.Status, status)
+                                      .SetProperty(c => c.ProducedAt, c => c.AllocatedAt)
+                                      .SetProperty(c => c.ShiftDate, c => c.AllocatedAt!.Value.AddHours(-8).Date)
+                                      .SetProperty(c => c.ExpirationDate, c => c.AllocatedAt!.Value.AddHours(-8).Date.AddMonths(shelfLifeValue))
+                                      .SetProperty(c => c.UpdatedAt, recoveredAt)
+                                      .SetProperty(c => c.RecoverAt, recoveredAt),
+                    cancellationToken),
+                3 => await query.ExecuteUpdateAsync(
+                    setters => setters.SetProperty(c => c.Status, status)
+                                      .SetProperty(c => c.ProducedAt, c => c.AllocatedAt)
+                                      .SetProperty(c => c.ShiftDate, c => c.AllocatedAt!.Value.AddHours(-8).Date)
+                                      .SetProperty(c => c.ExpirationDate, c => c.AllocatedAt!.Value.AddHours(-8).Date.AddYears(shelfLifeValue))
+                                      .SetProperty(c => c.UpdatedAt, recoveredAt)
+                                      .SetProperty(c => c.RecoverAt, recoveredAt),
+                    cancellationToken),
+                _ => throw new ArgumentOutOfRangeException(nameof(shelfLifeUnit), shelfLifeUnit, "Geçersiz raf ömrü birimi.")
+            };
         }
+
+        public async Task<int> ResetProduction(long? salesOrderItemId, long? plannedOrderId, CancellationToken cancellationToken = default)
+        {
+            var updatedAt = DateTime.Now;
+            var query = Context.Codes.AsQueryable();
+
+            if (salesOrderItemId.HasValue && salesOrderItemId.Value > 0)
+            {
+                query = query.Where(c => c.SalesOrderItemId == salesOrderItemId.Value);
+            }
+
+            if (plannedOrderId.HasValue && plannedOrderId.Value > 0)
+            {
+                query = query.Where(c => c.PlannedOrderId == plannedOrderId.Value);
+            }
+
+            var updatedCodeCount = await query.ExecuteUpdateAsync(
+                setters => setters.SetProperty(c => c.Status, CodeStatus.Available)
+                                  .SetProperty(c => c.PlannedOrderId, (long?)null)
+                                  .SetProperty(c => c.StationId, (int?)null)
+                                  .SetProperty(c => c.PackagingLevel, (byte?)null)
+                                  .SetProperty(c => c.AllocatedAt, (DateTime?)null)
+                                  .SetProperty(c => c.ProducedAt, (DateTime?)null)
+                                  .SetProperty(c => c.ShiftDate, (DateTime?)null)
+                                  .SetProperty(c => c.ExpirationDate, (DateTime?)null)
+                                  .SetProperty(c => c.UpdatedAt, updatedAt),
+                cancellationToken);
+
+            await Context.Database.ExecuteSqlInterpolatedAsync($"""
+                                                                
+                                                                    UPDATE cz.PlannedOrderCodeCursor
+                                                                    SET NextCodeId = NULL
+                                                                    WHERE ({salesOrderItemId} IS NULL OR SalesOrderItemId = {salesOrderItemId})
+                                                                    AND ({plannedOrderId} IS NULL OR PlannedOrderId = {plannedOrderId})                                                                                                                                    
+                                                                """, cancellationToken);
+
+            return updatedCodeCount;
+        }
+
 
         public async Task<GetCodeLookupDto?> GetCodeLookup(string code, CancellationToken cancellationToken = default)
         {

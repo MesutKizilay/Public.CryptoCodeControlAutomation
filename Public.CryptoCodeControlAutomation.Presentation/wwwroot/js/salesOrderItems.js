@@ -5,6 +5,7 @@
     const pollingRows = new Set();
     let pendingOpenId = null;
     let editSapValidatedAt = null;
+    let editOriginalStatus = null;
     const dt = $('#salesOrderItemTable').DataTable({
         processing: true,
         serverSide: true,
@@ -77,23 +78,13 @@
                 render: function (d, type, row) {
                     switch (d) {
                         case 0:
-                            return `<button type="button"
-                                            class="badge bg-success border-0 js-complete-sales-order"
-                                            data-id="${row.salesOrderItemId}"
-                                            title="Satış siparişini tamamlandı olarak işaretle">
-                                        Aktif
-                                    </button>`;
+                            return '<span class="badge bg-success">Aktif</span>';
                         case 1:
                             return '<span class="badge bg-primary">Tamamlandı</span>';
                         case 2:
                             return '<span class="badge bg-danger">İptal edildi</span>';
                         case 3:
-                            return `<button type="button"
-                                            class="badge bg-secondary border-0 js-activate-sales-order"
-                                            data-id="${row.salesOrderItemId}"
-                                            title="Satış siparişini aktifleştir">
-                                        Pasif
-                                    </button>`;
+                            return '<span class="badge bg-secondary">Pasif</span>';
                         default:
                             return '<span class="badge bg-light text-dark">Bilinmiyor</span>';
                     }
@@ -213,6 +204,12 @@
         dropdownParent: $('#offcanvasEditLabel')
     });
 
+    $('#edit-status').select2({
+        minimumResultsForSearch: Infinity,
+        width: '100%',
+        dropdownParent: $('#offcanvasEditLabel')
+    });
+
     // ============================
     // Helpers
     // ============================
@@ -240,17 +237,17 @@
     function statusBadge(status) {
         switch (status) {
             case 0:
-                return '<span class="badge bg-label-primary">New</span>';
+                return '<span class="badge bg-label-primary">Yeni</span>';
             case 1:
-                return '<span class="badge bg-label-warning">Importıng</span>';
+                return '<span class="badge bg-label-warning">İçe Aktarılıyor</span>';
             case 2:
-                return '<span class="badge bg-label-success">Done</span>';
+                return '<span class="badge bg-label-success">Tamamlandı</span>';
             case 3:
-                return '<span class="badge bg-label-danger">Faıled</span>';
+                return '<span class="badge bg-label-danger">Başarısız</span>';
             case 4:
-                return '<span class="badge bg-label-danger">Deleted</span>';
+                return '<span class="badge bg-label-danger">Silindi</span>';
             default:
-                return '<span class="badge bg-label-secondary">Unknown</span>';
+                return '<span class="badge bg-label-secondary">Bilinmiyor</span>';
         }
     }
 
@@ -262,6 +259,7 @@
         const rows = jobs.map(j => `
             <tr>
                 <td>${j.uploadJobId}</td>
+                <td class="text-truncate" style="max-width: 220px;" title="${j.fileName ?? ''}">${j.fileName ?? ''}</td>
                 <td>${statusBadge(j.status)}</td>
                 <td>${j.totalRows ?? ''}</td>
                 <td>${j.insertedRows ?? ''}</td>
@@ -277,12 +275,13 @@
                         <thead class="table-light">
                             <tr>
                                 <th>Id</th>
-                                <th>Status</th>
-                                <th>Total</th>
-                                <th>Inserted</th>
-                                <th>Started</th>
-                                <th>Fınıshed</th>
-                                <th>Error</th>
+                                <th>Dosya Adı</th>
+                                <th>Durum</th>
+                                <th>Toplam</th>
+                                <th>Kayıt Edilen</th>
+                                <th>Başlama</th>
+                                <th>Bitiş</th>
+                                <th>Hata</th>
                             </tr>
                         </thead>
                         <tbody class="table-border-bottom-0">${rows}</tbody>
@@ -411,7 +410,7 @@
 
                 if (lineCount !== expected) {
                     const result = await Swal.fire({
-                        title: 'Dosyadaki kod adeti fire miktarını(%5) karşılamıyor',
+                        title: 'Dosyadaki kod adedi fire miktarından(%5) fazladır!',
                         text: `Planlanan: ${plannedQty} | Dosya: ${lineCount} | Beklenen: ${expected}. Yüklemeye devam edilsin mi?`,
                         icon: 'warning',
                         showCancelButton: true,
@@ -491,6 +490,13 @@
                 $('#edit-caseQty').val(res.sapCaseQty);
                 $('#edit-shelfLifeValue').val(res.shelfLifeValue);
                 $('#edit-shelfLifeUnit').val(res.shelfLifeUnit?.toString() ?? '').trigger('change');
+                editOriginalStatus = Number(res.status);
+                const statusValue = res.status?.toString() ?? '3';
+                const statusIsSelectable = ['0', '1', '3'].includes(statusValue);
+                $('#edit-status')
+                    .prop('disabled', !statusIsSelectable)
+                    .val(statusIsSelectable ? statusValue : '3')
+                    .trigger('change');
                 editSapValidatedAt = res.sapValidatedAt || new Date().toISOString();
 
                 bootstrap.Offcanvas.getOrCreateInstance('#offcanvasEditLabel').show();
@@ -499,11 +505,21 @@
     });
 
     // Edit submit
-    $('#btnUpdateSalesOrderItem').on('click', function (e) {
+    $('#btnUpdateSalesOrderItem').on('click', async function (e) {
         e.preventDefault();
+        const $btn = $(this);
+        if ($btn.data('submitting')) return;
+        $btn.data('submitting', true).prop('disabled', true);
+        const releaseSubmit = () => $btn.data('submitting', false).prop('disabled', false);
+
+        const salesOrderItemId = parseInt($('#edit-id').val(), 10);
+        const selectedStatusValue = $('#edit-status').prop('disabled') ? null : $('#edit-status').val();
+        const selectedStatus = selectedStatusValue === null || selectedStatusValue === ''
+            ? editOriginalStatus
+            : Number(selectedStatusValue);
 
         const payload = {
-            salesOrderItemId: parseInt($('#edit-id').val(), 10),
+            salesOrderItemId: salesOrderItemId,
             salesOrderNo: $('#edit-salesOrderNo').val()?.trim(),
             salesItemNo: $('#edit-salesItemNo').val()?.trim(),
             materialNo: $('#edit-materialNo').val()?.trim(),
@@ -515,98 +531,34 @@
             sapValidatedAt: editSapValidatedAt
         };
 
-        $.ajax({
-            url: '/SalesOrderItems/Update',
-            type: 'POST',
-            data: payload,
-            success: function () {
-                bootstrap.Offcanvas.getOrCreateInstance('#offcanvasEditLabel').hide();
-                dt.ajax.reload(null, false);
+        try {
+            await $.ajax({
+                url: '/SalesOrderItems/Update',
+                type: 'POST',
+                data: payload
+            });
 
-                Toast?.fire({ icon: 'success', title: 'Kayıt güncellendi.' });
-            },
-            error: function (xhr) { parseErrorResponse?.(xhr); }
-        });
-    });
-
-    // ============================
-    // Activate
-    // ============================
-    $('#salesOrderItemTable').on('click', '.js-activate-sales-order', function (e) {
-        e.preventDefault();
-        const id = $(this).data('id');
-
-        Swal.fire({
-            title: 'Satış siparişini aktifleştirmek istediğinizden emin misiniz?',
-            text: 'Bu işlemle birlikte planlı sipariş oluşturulacaktır.',
-            icon: 'warning',
-            showCancelButton: true,
-            cancelButtonText: 'Vazgeç',
-            confirmButtonText: 'Aktif Et',
-            confirmButtonColor: '#28c76f',
-            cancelButtonColor: '#6c757d',
-            showLoaderOnConfirm: true,
-            backdrop: true,
-            allowOutsideClick: () => !Swal.isLoading(),
-            preConfirm: async () => {
-                try {
-                    await $.ajax({
-                        url: '/SalesOrderItems/UpdateStatus',
-                        type: 'POST',
-                        data: { salesOrderItemId: id }
-                    });
-                    return true;
-                }
-                catch (xhr) {
-                    parseErrorResponse?.(xhr);
-                    return false;
-                }
+            if (Number.isFinite(selectedStatus) && selectedStatus !== editOriginalStatus) {
+                await $.ajax({
+                    url: '/SalesOrderItems/UpdateStatus',
+                    type: 'POST',
+                    data: {
+                        salesOrderItemId: salesOrderItemId,
+                        status: selectedStatus
+                    }
+                });
             }
-        }).then((r) => {
-            if (!r.isConfirmed) return;
-            dt.ajax.reload(null, false);
-            Toast?.fire({ icon: 'success', title: 'Satış siparişi aktifleştirildi.' });
-        });
-    });
 
-    // ============================
-    // Complete
-    // ============================
-    $('#salesOrderItemTable').on('click', '.js-complete-sales-order', function (e) {
-        e.preventDefault();
-        const id = $(this).data('id');
-
-        Swal.fire({
-            title: 'Siparişini tamamlamak istediğinizden emin misiniz?',
-            text: 'Bu işlem üretimi durduracak ve geri alınamayacaktır. Yalnızca üretim gerçekten bittiyse tamamlandı olarak işaretleyiniz.',
-            icon: 'warning',
-            showCancelButton: true,
-            cancelButtonText: 'Vazgeç',
-            confirmButtonText: 'Tamamlandı',
-            confirmButtonColor: '#696cff',
-            cancelButtonColor: '#6c757d',
-            showLoaderOnConfirm: true,
-            backdrop: true,
-            allowOutsideClick: () => !Swal.isLoading(),
-            preConfirm: async () => {
-                try {
-                    await $.ajax({
-                        url: '/SalesOrderItems/Complete',
-                        type: 'POST',
-                        data: { salesOrderItemId: id }
-                    });
-                    return true;
-                }
-                catch (xhr) {
-                    parseErrorResponse?.(xhr);
-                    return false;
-                }
-            }
-        }).then((r) => {
-            if (!r.isConfirmed) return;
+            bootstrap.Offcanvas.getOrCreateInstance('#offcanvasEditLabel').hide();
             dt.ajax.reload(null, false);
-            Toast?.fire({ icon: 'success', title: 'Satış siparişi tamamlandı olarak işaretlendi.' });
-        });
+            Toast?.fire({ icon: 'success', title: 'Kayıt güncellendi.' });
+        }
+        catch (xhr) {
+            parseErrorResponse?.(xhr);
+        }
+        finally {
+            releaseSubmit();
+        }
     });
 
     // ============================

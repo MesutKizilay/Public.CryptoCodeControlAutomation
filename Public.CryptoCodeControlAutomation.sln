@@ -19,9 +19,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Public.CryptoCodeControlAut
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Public.CryptoCodeControlAutomation.Domain", "Public.CryptoCodeControlAutomation.Domain\Public.CryptoCodeControlAutomation.Domain.csproj", "{FDD33CAD-FEEE-55E8-C951-4CEB11D2BC1A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptoCodeControlAutomation.Infrastructure", "Public.CryptoCodeControlAutomation.Infrastructure\CryptoCodeControlAutomation.Infrastructure.csproj", "{AEFB3B27-AD27-CE86-2072-A9B53F2A5CCE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Public.CryptoCodeControlAutomation.Infrastructure", "Public.CryptoCodeControlAutomation.Infrastructure\Public.CryptoCodeControlAutomation.Infrastructure.csproj", "{AEFB3B27-AD27-CE86-2072-A9B53F2A5CCE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptoCodeControlAutomation.Persistence", "Public.CryptoCodeControlAutomation.Persistence\CryptoCodeControlAutomation.Persistence.csproj", "{F4FF239C-D917-E502-3249-E645F9064B57}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Public.CryptoCodeControlAutomation.Persistence", "Public.CryptoCodeControlAutomation.Persistence\Public.CryptoCodeControlAutomation.Persistence.csproj", "{F4FF239C-D917-E502-3249-E645F9064B57}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Public.CryptoCodeControlAutomation.Presentation", "Public.CryptoCodeControlAutomation.Presentation\Public.CryptoCodeControlAutomation.Presentation.csproj", "{E4345116-9453-9E11-7B61-5CA5755DF01F}"
 EndProject

@@ -1,5 +1,6 @@
 using CryptoCodeControlAutomation.Application.Services.Repositories;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace CryptoCodeControlAutomation.Application.Features.SalesOrderItems.Queries.GetNextSalesOrderNo
 {
@@ -18,7 +19,9 @@ namespace CryptoCodeControlAutomation.Application.Features.SalesOrderItems.Queri
             {
                 const string defaultNumber = "00000001";
 
-                var lastSalesOrderItem = await _salesOrderItemsRepository.Get(predicate: s => !string.IsNullOrEmpty(s.SalesOrderNo),
+                var lastSalesOrderItem = await _salesOrderItemsRepository.Get(predicate: s => !string.IsNullOrEmpty(s.SalesOrderNo)
+                                                                                           && s.SalesOrderNo.Length <= 18
+                                                                                           && !EF.Functions.Like(s.SalesOrderNo, "%[^0-9]%"),
                                                                               orderBy: query => query.OrderByDescending(s => Convert.ToInt64(s.SalesOrderNo)),
                                                                               withDeleted: true,
                                                                               cancellationToken: cancellationToken);

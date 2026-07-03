@@ -93,9 +93,41 @@ namespace CryptoCodeControlAutomation.Persistence.Repositories
 
                 try
                 {
+                    var now = DateTime.Now;
+                    var existingPlannedOrderIds = await Context.PlannedOrderSalesLinks
+                        .Where(link => link.SalesOrderItemId == salesOrderItem.SalesOrderItemId)
+                        .Select(link => link.PlannedOrderId)
+                        .Distinct()
+                        .ToListAsync(cancellationToken);
+
+                    if (existingPlannedOrderIds.Count > 0)
+                    {
+                        salesOrderItem.Status = SalesOrderItemStatus.Active;
+                        salesOrderItem.IsOpen = true;
+                        salesOrderItem.UpdatedAt = now;
+
+                        Context.SalesOrderItems.Update(salesOrderItem);
+
+                        var existingPlannedOrders = await Context.PlannedOrders
+                            .Where(order => existingPlannedOrderIds.Contains(order.PlannedOrderId))
+                            .ToListAsync(cancellationToken);
+
+                        foreach (var plannedOrder in existingPlannedOrders)
+                        {
+                            plannedOrder.Status = PlannedOrderStatus.Active;
+                            plannedOrder.CompletedAt = null;
+                            plannedOrder.StartedAt ??= now;
+                        }
+
+                        await Context.SaveChangesAsync(cancellationToken);
+                        await transaction.CommitAsync(cancellationToken);
+
+                        return existingPlannedOrderIds[0];
+                    }
+
                     salesOrderItem.Status = SalesOrderItemStatus.Active;
                     salesOrderItem.IsOpen = true;
-                    salesOrderItem.UpdatedAt = DateTime.Now;
+                    salesOrderItem.UpdatedAt = now;
 
                     Context.SalesOrderItems.Update(salesOrderItem);
                     await Context.SaveChangesAsync(cancellationToken);
@@ -172,12 +204,12 @@ namespace CryptoCodeControlAutomation.Persistence.Repositories
             });
         }
 
-        public async Task CompleteWithPlannedOrders(SalesOrderItem salesOrderItem, CancellationToken cancellationToken = default)
+        public async Task ChangeStatusWithPlannedOrders(SalesOrderItem salesOrderItem, SalesOrderItemStatus status, CancellationToken cancellationToken = default)
         {
             var now = DateTime.Now;
 
-            salesOrderItem.Status = SalesOrderItemStatus.Completed;
-            salesOrderItem.IsOpen = false;
+            salesOrderItem.Status = status;
+            salesOrderItem.IsOpen = status == SalesOrderItemStatus.Active;
             salesOrderItem.UpdatedAt = now;
 
             Context.SalesOrderItems.Update(salesOrderItem);
@@ -190,15 +222,24 @@ namespace CryptoCodeControlAutomation.Persistence.Repositories
 
             if (plannedOrderIds.Count > 0)
             {
+                PlannedOrderStatus plannedOrderStatus = status switch
+                {
+                    SalesOrderItemStatus.Active => PlannedOrderStatus.Active,
+                    SalesOrderItemStatus.Cancelled => PlannedOrderStatus.Cancelled,
+                    _ => PlannedOrderStatus.Completed
+                };
+
                 var plannedOrders = await Context.PlannedOrders
-                    .Where(order => plannedOrderIds.Contains(order.PlannedOrderId) &&
-                                    order.Status == PlannedOrderStatus.Active)
+                    .Where(order => plannedOrderIds.Contains(order.PlannedOrderId))
                     .ToListAsync(cancellationToken);
 
                 foreach (var plannedOrder in plannedOrders)
                 {
-                    plannedOrder.Status = PlannedOrderStatus.Completed;
-                    plannedOrder.CompletedAt = now;
+                    plannedOrder.Status = plannedOrderStatus;
+                    plannedOrder.CompletedAt = plannedOrderStatus == PlannedOrderStatus.Completed ? now : null;
+
+                    if (plannedOrderStatus == PlannedOrderStatus.Active)
+                        plannedOrder.StartedAt ??= now;
                 }
             }
 
@@ -226,6 +267,8 @@ namespace CryptoCodeControlAutomation.Persistence.Repositories
                 foreach (var plannedOrder in plannedOrders)
                 {
                     plannedOrder.TotalUnitQty = totalUnitQty;
+                    plannedOrder.OriginalTotalUnitQty = salesOrderItem.SapPlannedUnitQty;
+                    plannedOrder.MaterialNo = salesOrderItem.MaterialNo;
                     plannedOrder.TotalCaseQty = salesOrderItem.SapCaseQty;
                 }
             }

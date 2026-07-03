@@ -1,4 +1,6 @@
 $(function () {
+    const legacyOrderTablesEnabled = false;
+
     const setText = (id, value) => {
         const el = document.getElementById(id);
         if (el) el.textContent = value ?? 0;
@@ -40,6 +42,17 @@ $(function () {
             default:
                 return '<span class="badge bg-light text-dark">Bilinmiyor</span>';
         }
+    };
+
+    const formatCodeUploadStatus = (isCodeUploaded) => {
+        return isCodeUploaded
+            ? '<span class="badge bg-success">Kod Yüklendi</span>'
+            : '<span class="badge bg-danger">Kod Yüklenmedi</span>';
+    };
+
+    const formatQuantity = (value) => {
+        if (value === null || value === undefined) return "-";
+        return Number(value).toLocaleString("tr-TR");
     };
 
     const renderPlannedOrders = (items) => {
@@ -87,7 +100,7 @@ $(function () {
 
             codeStatusChart = new ApexCharts(el, {
                 chart: { type: "donut", height: 320 },
-                labels: ["Available", "Allocated", "ProducedOk", "Reject", "Scrap", "Void"],
+                labels: ["Available", "Allocated", "ProducedOk", "Reject Kurtarma", "Scrap", "Void"],
                 series: series,
                 legend: { position: "bottom" },
                 dataLabels: { enabled: true },
@@ -125,8 +138,8 @@ $(function () {
             url: "/Dashboard/GetCodeStatusSummary",
             type: "GET",
             data: {
-                salesOrderItemId: selectedSalesOrderItemId,
-                plannedOrderId: selectedPlannedOrderId
+                salesOrderItemId: selectedSalesOrderItemId
+                //plannedOrderId: selectedPlannedOrderId
             },
             success: function (res) {
                 buildOrUpdateChart(res);
@@ -139,13 +152,13 @@ $(function () {
 
     const updateProducedPeriodLabel = () => {
         if (!producedPeriodLabel) return;
-        producedPeriodLabel.textContent = producedPeriodLabels[selectedProducedPeriod] ?? "Aylik";
+        producedPeriodLabel.textContent = producedPeriodLabels[selectedProducedPeriod] ?? "Aylık";
     };
 
     const updateCodeStatusSelection = () => {
         if (!codeStatusSelection) return;
         if (!selectedSalesOrderLabel && !selectedPlannedOrderLabel) {
-            codeStatusSelection.textContent = "Tum kodlar";
+            codeStatusSelection.textContent = "Tüm kodlar";
             return;
         }
 
@@ -177,7 +190,7 @@ $(function () {
                     labels: labels,
                     datasets: [
                         {
-                            label: "Uretilen",
+                            label: "Üretilen",
                             data: data,
                             backgroundColor: "#7367f0",
                             borderColor: "transparent",
@@ -212,8 +225,8 @@ $(function () {
             type: "GET",
             data: {
                 period: selectedProducedPeriod,
-                salesOrderItemId: selectedSalesOrderItemId,
-                plannedOrderId: selectedPlannedOrderId
+                salesOrderItemId: selectedSalesOrderItemId
+                //plannedOrderId: selectedPlannedOrderId
             },
             success: function (items) {
                 buildOrUpdateProducedChart(items);
@@ -258,47 +271,29 @@ $(function () {
         });
     });
 
-    const salesDt = $("#dashboard-salesorderitems-table").DataTable({
+    const salesPlannedDt = $("#dashboard-sales-planned-table").DataTable({
         processing: true,
         serverSide: true,
         searching: true,
+        ordering: false,
+        autoWidth: false,
+        scrollX: true,
         ajax: function (dtReq, callback) {
             const pageIndex = Math.trunc(dtReq.start / dtReq.length);
             const pageSize = dtReq.length;
             const searchValue = dtReq.search?.value?.trim() || "";
 
-            const sort = (dtReq.order || []).map(o => ({
-                field: dtReq.columns[o.column].data,
-                direction: o.dir
-            }));
-
-            let dynamicQuery = { sort: sort, filter: null };
-
-            if (searchValue) {
-                dynamicQuery.filter = {
-                    field: "SalesOrderNo",
-                    operator: "contains",
-                    value: searchValue,
-                    logic: "or",
-                    filters: [
-                        { field: "MaterialNo", operator: "contains", value: searchValue },
-                        { field: "SalesItemNo", operator: "contains", value: searchValue }
-                    ]
-                };
-            }
-
             $.ajax({
-                url: "/SalesOrderItems/GetList?Index=" + pageIndex + "&Size=" + pageSize + "&withDeleted=false",
+                url: `/Dashboard/GetSalesPlannedOrderSummary?Index=${pageIndex}&Size=${pageSize}`,
                 type: "POST",
                 contentType: "application/json",
-                data: JSON.stringify(dynamicQuery),
+                data: JSON.stringify({ search: searchValue }),
                 success: function (res) {
-                    const items = res.items ?? [];
                     callback({
                         draw: dtReq.draw,
                         recordsTotal: res.noOfItem ?? 0,
                         recordsFiltered: res.noOfItem ?? 0,
-                        data: items
+                        data: res.items ?? []
                     });
                 },
                 error: function () {
@@ -307,59 +302,180 @@ $(function () {
             });
         },
         columns: [
-            { data: "salesOrderItemId", title: "Id" },
             { data: "salesOrderNo", title: "Satış Sipariş No" },
             { data: "salesItemNo", title: "Kalem Numarası" },
-            { data: "materialNo", title: "Mamül No" },
-            { data: "sapPlannedUnitQty", title: "Birim Miktarı" },
             {
-                data: "status",
-                title: "Durum",
-                orderable: false,
-                render: function (d) {
-                    return formatSalesOrderItemStatus(d);
+                data: "sapCaseQty",
+                title: "Koli Miktarı",
+                className: "text-end",
+                render: function (value) {
+                    return formatQuantity(value);
+                }
+            },
+            {
+                data: "sapPlannedUnitQty",
+                title: "Birim Miktarı",
+                className: "text-end",
+                render: function (value) {
+                    return formatQuantity(value);
+                }
+            },
+            {
+                data: "isCodeUploaded",
+                title: "Kod Yükleme Durumu",
+                className: "text-center",
+                render: function (value) {
+                    return formatCodeUploadStatus(value);
+                }
+            },
+            {
+                data: "plannedOrderNo",
+                title: "Planlı Sipariş No",
+                render: function (value) {
+                    return value || "-";
+                }
+            },
+            {
+                data: "plannedOrderUnitQty",
+                title: "Planlı Sipariş Miktarı",
+                className: "text-end",
+                render: function (value) {
+                    return formatQuantity(value);
                 }
             }
         ],
-        order: [[0, "desc"]],
-        lengthMenu: [5, 10, 25],
+        lengthMenu: [10, 25, 50],
         language: { url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/tr.json" }
     });
 
-    $("#dashboard-salesorderitems-table tbody").on("click", "tr", function () {
-        const data = salesDt.row(this).data();
+    $("#dashboard-sales-planned-table tbody").on("click", "tr", function () {
+        const data = salesPlannedDt.row(this).data();
         if (!data) return;
 
-        $("#dashboard-salesorderitems-table tbody tr").removeClass("table-active");
+        $("#dashboard-sales-planned-table tbody tr").removeClass("table-active");
         $(this).addClass("table-active");
 
-        selectedSalesOrderItemId = data.salesOrderItemId;
-        selectedPlannedOrderId = null;
-        selectedPlannedOrderLabel = "";
-        selectedSalesOrderLabel = `${data.salesOrderNo ?? ""}`.trim();
+        const salesOrderItemId = Number(data.salesOrderItemId);
+        const plannedOrderId = Number(data.plannedOrderId);
 
-        if (plannedSubtitle) {
-            const label = `${data.salesOrderNo ?? ""} / ${data.salesItemNo ?? ""}`;
-            plannedSubtitle.textContent = label || "Satış siparişi seçiniz";
-        }
+        selectedSalesOrderItemId = Number.isFinite(salesOrderItemId) && salesOrderItemId > 0
+            ? salesOrderItemId
+            : null;
+        selectedPlannedOrderId = Number.isFinite(plannedOrderId) && plannedOrderId > 0
+            ? plannedOrderId
+            : null;
+        selectedSalesOrderLabel = `${data.salesOrderNo ?? ""} / ${data.salesItemNo ?? ""}`.trim();
+        selectedPlannedOrderLabel = data.plannedOrderNo ?? "";
 
-        loadPlannedOrders(data.salesOrderItemId);
         updateCodeStatusSelection();
         loadCodeDistribution();
         loadProducedChart();
     });
 
-    $("#dashboard-plannedorders-table tbody").on("click", "tr", function () {
-        const plannedOrderId = Number(this.dataset.plannedOrderId);
-        if (!Number.isFinite(plannedOrderId)) return;
+    if (legacyOrderTablesEnabled) {
+        const salesDt = $("#dashboard-salesorderitems-table").DataTable({
+            processing: true,
+            serverSide: true,
+            searching: true,
+            ajax: function (dtReq, callback) {
+                const pageIndex = Math.trunc(dtReq.start / dtReq.length);
+                const pageSize = dtReq.length;
+                const searchValue = dtReq.search?.value?.trim() || "";
 
-        $("#dashboard-plannedorders-table tbody tr").removeClass("table-active");
-        $(this).addClass("table-active");
+                const sort = (dtReq.order || []).map(o => ({
+                    field: dtReq.columns[o.column].data,
+                    direction: o.dir
+                }));
 
-        selectedPlannedOrderId = plannedOrderId;
-        selectedPlannedOrderLabel = this.dataset.plannedOrderNo ?? "";
-        updateCodeStatusSelection();
-        loadCodeDistribution();
-        loadProducedChart();
-    });
+                let dynamicQuery = { sort: sort, filter: null };
+
+                if (searchValue) {
+                    dynamicQuery.filter = {
+                        field: "SalesOrderNo",
+                        operator: "contains",
+                        value: searchValue,
+                        logic: "or",
+                        filters: [
+                            { field: "MaterialNo", operator: "contains", value: searchValue },
+                            { field: "SalesItemNo", operator: "contains", value: searchValue }
+                        ]
+                    };
+                }
+
+                $.ajax({
+                    url: "/SalesOrderItems/GetList?Index=" + pageIndex + "&Size=" + pageSize + "&withDeleted=false",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(dynamicQuery),
+                    success: function (res) {
+                        const items = res.items ?? [];
+                        callback({
+                            draw: dtReq.draw,
+                            recordsTotal: res.noOfItem ?? 0,
+                            recordsFiltered: res.noOfItem ?? 0,
+                            data: items
+                        });
+                    },
+                    error: function () {
+                        callback({ draw: dtReq.draw, recordsTotal: 0, recordsFiltered: 0, data: [] });
+                    }
+                });
+            },
+            columns: [
+                { data: "salesOrderItemId", title: "Id" },
+                { data: "salesOrderNo", title: "Satış Sipariş No" },
+                { data: "salesItemNo", title: "Kalem Numarası" },
+                { data: "materialNo", title: "Mamül No" },
+                { data: "sapPlannedUnitQty", title: "Birim Miktarı" },
+                {
+                    data: "status",
+                    title: "Durum",
+                    orderable: false,
+                    render: function (d) {
+                        return formatSalesOrderItemStatus(d);
+                    }
+                }
+            ],
+            order: [[0, "desc"]],
+            lengthMenu: [5, 10, 25],
+            language: { url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/tr.json" }
+        });
+
+        $("#dashboard-salesorderitems-table tbody").on("click", "tr", function () {
+            const data = salesDt.row(this).data();
+            if (!data) return;
+
+            $("#dashboard-salesorderitems-table tbody tr").removeClass("table-active");
+            $(this).addClass("table-active");
+
+            selectedSalesOrderItemId = data.salesOrderItemId;
+            selectedPlannedOrderId = null;
+            selectedPlannedOrderLabel = "";
+            selectedSalesOrderLabel = `${data.salesOrderNo ?? ""}`.trim();
+
+            if (plannedSubtitle) {
+                const label = `${data.salesOrderNo ?? ""} / ${data.salesItemNo ?? ""}`;
+                plannedSubtitle.textContent = label || "Satış siparişi seçiniz";
+            }
+
+            loadPlannedOrders(data.salesOrderItemId);
+            updateCodeStatusSelection();
+            loadCodeDistribution();
+            loadProducedChart();
+        });
+
+        $("#dashboard-plannedorders-table tbody").on("click", "tr", function () {
+            const plannedOrderId = Number(this.dataset.plannedOrderId);
+            if (!Number.isFinite(plannedOrderId)) return;
+
+            $("#dashboard-plannedorders-table tbody tr").removeClass("table-active");
+            $(this).addClass("table-active");
+
+            selectedPlannedOrderId = plannedOrderId;
+            selectedPlannedOrderLabel = this.dataset.plannedOrderNo ?? "";
+            updateCodeStatusSelection();
+            loadCodeDistribution();
+            loadProducedChart();
+        });
+    }
 });

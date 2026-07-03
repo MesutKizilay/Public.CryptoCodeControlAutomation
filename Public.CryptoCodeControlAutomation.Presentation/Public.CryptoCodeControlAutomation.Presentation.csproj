@@ -35,8 +35,8 @@
     <ProjectReference Include="..\Core.Application\Core.Application.csproj" />
     <ProjectReference Include="..\Core.Security\Core.Security.csproj" />
     <ProjectReference Include="..\Public.CryptoCodeControlAutomation.Application\Public.CryptoCodeControlAutomation.Application.csproj" />
-    <ProjectReference Include="..\Public.CryptoCodeControlAutomation.Infrastructure\CryptoCodeControlAutomation.Infrastructure.csproj" />
-    <ProjectReference Include="..\Public.CryptoCodeControlAutomation.Persistence\CryptoCodeControlAutomation.Persistence.csproj" />
+    <ProjectReference Include="..\Public.CryptoCodeControlAutomation.Infrastructure\Public.CryptoCodeControlAutomation.Infrastructure.csproj" />
+    <ProjectReference Include="..\Public.CryptoCodeControlAutomation.Persistence\Public.CryptoCodeControlAutomation.Persistence.csproj" />
   </ItemGroup>
 
 </Project>

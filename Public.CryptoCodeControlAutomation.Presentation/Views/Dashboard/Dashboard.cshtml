@@ -101,9 +101,9 @@
                 </div>
             </div>
         </div>
-    </div>    
+    </div>
 
-    <div class="row g-4 mb-4">
+    <div id="legacy-dashboard-order-tables" class="row g-4 mb-4 d-none">
         <div class="col-lg-7">
             <div class="card h-100">
                 <div class="card-header border-bottom">
@@ -126,7 +126,7 @@
                         <thead>
                             <tr>
                                 <th>Id</th>
-                                <th>Planlı Sipariş No</th> 
+                                <th>Planlı Sipariş No</th>
                                 <th>Hat</th>
                                 <th>Miktar</th>
                                 @* <th>Kod</th> *@
@@ -139,6 +139,19 @@
                             </tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header border-bottom">
+                    <h5 class="card-title mb-0">Satış Siparişleri</h5>
+                </div>
+                <div class="card-datatable table-responsive">
+                    <table id="dashboard-sales-planned-table" class="table border-top table-striped table-hover w-100"></table>
                 </div>
             </div>
         </div>

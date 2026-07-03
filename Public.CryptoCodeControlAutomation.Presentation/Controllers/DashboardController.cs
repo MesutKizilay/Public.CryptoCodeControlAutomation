@@ -1,7 +1,9 @@
-using Microsoft.AspNetCore.Mvc;
+using Core.Application.Request;
 using CryptoCodeControlAutomation.Application.Features.Codes.Queries.GetCodeStatusSummary;
 using CryptoCodeControlAutomation.Application.Features.Codes.Queries.GetProducedCodeStatistics;
+using CryptoCodeControlAutomation.Application.Features.Codes.Queries.GetSalesPlannedOrderSummary;
 using CryptoCodeControlAutomation.Application.Features.PlannedOrders.Queries.GetListBySalesOrderItemId;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CryptoCodeControlAutomation.Presentation.Controllers
 {
@@ -44,6 +46,16 @@ namespace CryptoCodeControlAutomation.Presentation.Controllers
 
             var items = await Mediator.Send(query);
             return Json(items);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetSalesPlannedOrderSummary(
+            PageRequest pageRequest,
+            [FromBody] GetSalesPlannedOrderSummaryQuery query)
+        {
+            query.PageRequest = pageRequest;
+            var result = await Mediator.Send(query);
+            return Json(result);
         }
     }
 }

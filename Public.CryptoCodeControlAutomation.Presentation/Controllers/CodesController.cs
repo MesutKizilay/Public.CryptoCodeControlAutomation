@@ -1,9 +1,14 @@
 ﻿using Core.Application.Request;
+using CryptoCodeControlAutomation.Application.Features.Codes.Commands.AdjustShiftDate;
+using CryptoCodeControlAutomation.Application.Features.Codes.Commands.AdjustStatus;
 using CryptoCodeControlAutomation.Application.Features.Codes.Commands.RecoverCodes;
+using CryptoCodeControlAutomation.Application.Features.Codes.Commands.ResetProduction;
 using CryptoCodeControlAutomation.Application.Features.Codes.Commands.ScrapCodes;
 using CryptoCodeControlAutomation.Application.Features.Codes.Queries.ExportCodeReport;
 using CryptoCodeControlAutomation.Application.Features.Codes.Queries.GetCodeLookup;
 using CryptoCodeControlAutomation.Application.Features.Codes.Queries.GetCodeReportList;
+using CryptoCodeControlAutomation.Application.Features.Codes.Queries.GetCodeStatusSummary;
+using CryptoCodeControlAutomation.Application.Features.Codes.Queries.GetDailyProducedCodeSummary;
 using CryptoCodeControlAutomation.Application.Features.Codes.Queries.GetListCodesByPlannedOrderId;
 using CryptoCodeControlAutomation.Application.Features.PlannedOrders.Queries.GetPlannedOrderByPalletNumber;
 using CryptoCodeControlAutomation.Presentation.Services;
@@ -37,6 +42,11 @@ namespace CryptoCodeControlAutomation.Presentation.Controllers
         }
 
         public IActionResult CodeLookup()
+        {
+            return View();
+        }
+
+        public IActionResult CodeAdjustments()
         {
             return View();
         }
@@ -126,6 +136,58 @@ namespace CryptoCodeControlAutomation.Presentation.Controllers
         public IActionResult CodeReports()
         {
             return View();
+        }
+
+        [HttpGet]
+        //[Authorize(Roles = "Admin,Supervisor")]
+        public async Task<IActionResult> GetCodeStatusSummary(long? salesOrderItemId, long? plannedOrderId)
+        {
+            var query = new GetCodeStatusSummaryQuery
+            {
+                SalesOrderItemId = salesOrderItemId,
+                PlannedOrderId = plannedOrderId
+            };
+
+            var result = await Mediator.Send(query);
+            return Json(result);
+        }
+
+        [HttpGet]
+        //[Authorize(Roles = "Admin,Supervisor")]
+        public async Task<IActionResult> GetDailyProducedCodeSummary(long? salesOrderItemId, long? plannedOrderId)
+        {
+            var query = new GetDailyProducedCodeSummaryQuery
+            {
+                SalesOrderItemId = salesOrderItemId,
+                PlannedOrderId = plannedOrderId
+            };
+
+            var result = await Mediator.Send(query);
+            return Json(result);
+        }
+
+        [HttpPost]
+        //[Authorize(Roles = "Admin,Supervisor")]
+        public async Task<IActionResult> AdjustCodeStatus([FromBody] AdjustCodeStatusCommand command)
+        {
+            var result = await Mediator.Send(command);
+            return Json(result);
+        }
+
+        [HttpPost]
+        //[Authorize(Roles = "Admin,Supervisor")]
+        public async Task<IActionResult> AdjustCodeShiftDate([FromBody] AdjustCodeShiftDateCommand command)
+        {
+            var result = await Mediator.Send(command);
+            return Json(result);
+        }
+
+        [HttpPost]
+        //[Authorize(Roles = "Admin,Supervisor")]
+        public async Task<IActionResult> ResetProduction([FromBody] ResetProductionCommand command)
+        {
+            var result = await Mediator.Send(command);
+            return Json(result);
         }
 
         [HttpPost]

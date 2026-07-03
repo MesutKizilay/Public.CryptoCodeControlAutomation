@@ -26,6 +26,7 @@ namespace CryptoCodeControlAutomation.Persistence
             services.AddTransient<ISalesOrderItemRepository, SalesOrderItemRepository>();
             services.AddTransient<IUploadJobRepository, UploadJobRepository>();
             services.AddTransient<ICodeRepository, CodeRepository>();
+            services.AddTransient<ICodeAdjustmentLogRepository, CodeAdjustmentLogRepository>();
             services.AddTransient<IPlannedOrderRepository, PlannedOrderRepository>();
             services.AddTransient<IPlannedOrderSalesLinkRepository, PlannedOrderSalesLinkRepository>();
 

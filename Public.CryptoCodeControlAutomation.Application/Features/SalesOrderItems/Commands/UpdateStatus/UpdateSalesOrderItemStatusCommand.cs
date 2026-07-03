@@ -10,12 +10,12 @@ namespace CryptoCodeControlAutomation.Application.Features.SalesOrderItems.Comma
     public class UpdateSalesOrderItemStatusCommand : IRequest
     {
         public long SalesOrderItemId { get; set; }
+        public SalesOrderItemStatus? Status { get; set; }
 
         public class UpdateSalesOrderItemStatusCommandHandler : IRequestHandler<UpdateSalesOrderItemStatusCommand>
         {
             private readonly ISalesOrderItemRepository _salesOrderItemRepository;
             private readonly SalesOrderItemBusinessRules _salesOrderItemBusinessRules;
-
 
             public UpdateSalesOrderItemStatusCommandHandler(ISalesOrderItemRepository salesOrderItemRepository, SalesOrderItemBusinessRules salesOrderItemBusinessRules)
             {
@@ -25,23 +25,39 @@ namespace CryptoCodeControlAutomation.Application.Features.SalesOrderItems.Comma
 
             public async Task Handle(UpdateSalesOrderItemStatusCommand request, CancellationToken cancellationToken)
             {
-                await _salesOrderItemBusinessRules.WasUploadJobImported(request.SalesOrderItemId);                
-                await _salesOrderItemBusinessRules.ActiveSalesOrderItemShouldNotExist(request.SalesOrderItemId);
+                if (!request.Status.HasValue)
+                    throw new BusinessException("Satış siparişi durumu seçilmelidir.");
 
-                var salesOrderItem = await _salesOrderItemRepository.Get(predicate: item => item.SalesOrderItemId == request.SalesOrderItemId,
-                                                                         withDeleted: false,
-                                                                         cancellationToken: cancellationToken);
+                var targetStatus = request.Status.Value;
+                if (targetStatus == SalesOrderItemStatus.Cancelled)
+                    throw new BusinessException("Satış siparişi iptal işlemi bu ekrandan yapılamaz.");
+
+                var salesOrderItem = await _salesOrderItemRepository.Get(
+                    predicate: item => item.SalesOrderItemId == request.SalesOrderItemId,
+                    withDeleted: false,
+                    cancellationToken: cancellationToken);
 
                 if (salesOrderItem == null)
                     throw new BusinessException("Satış siparişi bulunamadı.");
 
-                if (salesOrderItem.Status != SalesOrderItemStatus.Passive)
-                    throw new BusinessException("Yalnızca pasif satış siparişleri aktifleştirilebilir.");
+                if (salesOrderItem.Status == targetStatus)
+                    return;
 
+                if (targetStatus == SalesOrderItemStatus.Active)
+                {
+                    await _salesOrderItemBusinessRules.ActiveSalesOrderItemShouldNotExist(request.SalesOrderItemId);
+                    await _salesOrderItemBusinessRules.WasUploadJobImported(request.SalesOrderItemId);
+                }
 
                 try
                 {
-                    await _salesOrderItemRepository.ActivateAndStartPlannedOrder(salesOrderItem, cancellationToken: cancellationToken);
+                    if (targetStatus == SalesOrderItemStatus.Active)
+                    {
+                        await _salesOrderItemRepository.ActivateAndStartPlannedOrder(salesOrderItem, cancellationToken: cancellationToken);
+                        return;
+                    }
+
+                    await _salesOrderItemRepository.ChangeStatusWithPlannedOrders(salesOrderItem, targetStatus, cancellationToken);
                 }
                 catch (SqlException exception) when (exception.Number is >= 61000 and < 62000)
                 {

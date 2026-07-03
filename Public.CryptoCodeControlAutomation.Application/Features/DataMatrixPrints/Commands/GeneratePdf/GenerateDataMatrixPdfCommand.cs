@@ -71,49 +71,108 @@ namespace CryptoCodeControlAutomation.Application.Features.DataMatrixPrints.Comm
 
         private static class DataMatrixPdfBuilder
         {
-            private const int Columns = 4;
-            private const int Rows = 8;
-            //private const int Columns = 1;
-            //private const int Rows = 1;
-            private const int ItemsPerPage = Columns * Rows;
+            private const int RowsPerPage = 10;
+            private const int ItemsPerPage = RowsPerPage;
             private const double PageWidth = 595.28;
             private const double PageHeight = 841.89;
-            //private const double PageWidth = 74;
-            //private const double PageHeight = 74;
             private const double Margin = 24;
-            private const double MatrixSize = 54;
-            private const double TextSize = 5;
+            private const double TableWidth = PageWidth - (Margin * 2);
+            private const double TableHeight = PageHeight - (Margin * 2);
+            private const double SerialNumberColumnWidth = 48;
+            private const double MatrixColumnWidth = 98;
+            private const double MatrixSize = 58;
+            private const double TextSize = 6;
             private static readonly CultureInfo Invariant = CultureInfo.InvariantCulture;
 
             public static byte[] Build(IReadOnlyList<string> codes)
             {
-                var pages = codes.Chunk(ItemsPerPage).Select(BuildPageContent).ToList();
+                var rows = codes
+                    .Select((code, index) => new DataMatrixPdfRow(index + 1, code))
+                    .ToList();
+
+                var pages = rows.Chunk(ItemsPerPage).Select(BuildPageContent).ToList();
                 return WritePdf(pages);
             }
 
-            private static string BuildPageContent(string[] codes)
+            private static string BuildPageContent(DataMatrixPdfRow[] rows)
             {
-                var cellWidth = (PageWidth - (Margin * 2)) / Columns;
-                var cellHeight = (PageHeight - (Margin * 2)) / Rows;
+                var rowHeight = TableHeight / RowsPerPage;
+                var tableLeft = Margin;
+                var tableRight = Margin + TableWidth;
+                var tableTop = PageHeight - Margin;
+                var tableBottom = Margin;
+                var numberColumnRight = tableLeft + SerialNumberColumnWidth;
+                var matrixColumnRight = numberColumnRight + MatrixColumnWidth;
+
                 var content = new StringBuilder();
                 content.AppendLine("0 g");
+                content.AppendLine("0.5 w");
 
-                for (var index = 0; index < codes.Length; index++)
+                AppendTableGrid(
+                    content,
+                    tableLeft,
+                    tableRight,
+                    tableTop,
+                    tableBottom,
+                    numberColumnRight,
+                    matrixColumnRight,
+                    rowHeight);
+
+                for (var index = 0; index < rows.Length; index++)
                 {
-                    var code = codes[index];
-                    var matrix = CreateMatrix(code);
-                    var column = index % Columns;
-                    var row = index / Columns;
-                    var cellX = Margin + (column * cellWidth);
-                    var cellTop = PageHeight - Margin - (row * cellHeight);
-                    var matrixX = cellX + ((cellWidth - MatrixSize) / 2);
-                    var matrixY = cellTop - MatrixSize - 8;
+                    var row = rows[index];
+                    var matrix = CreateMatrix(row.Code);
+                    var rowTop = tableTop - (index * rowHeight);
+                    var rowBottom = rowTop - rowHeight;
+                    var rowMiddle = rowBottom + (rowHeight / 2);
 
+                    var numberText = row.SerialNumber.ToString(CultureInfo.InvariantCulture);
+                    var numberX = tableLeft + ((SerialNumberColumnWidth - EstimateTextWidth(numberText, TextSize)) / 2);
+                    var textBaselineY = rowMiddle - (TextSize / 2);
+
+                    var matrixX = numberColumnRight + ((MatrixColumnWidth - MatrixSize) / 2);
+                    var matrixY = rowMiddle - (MatrixSize / 2);
+
+                    var readableText = GetReadableText(row.Code);
+                    var readableTextX = matrixColumnRight + 8;
+
+                    AppendText(content, numberText, numberX, textBaselineY);
                     AppendMatrix(content, matrix, matrixX, matrixY);
-                    AppendText(content, GetReadableText(code), cellX + 4, matrixY - 9);
+                    AppendText(content, readableText, readableTextX, textBaselineY);
                 }
 
                 return content.ToString();
+            }
+
+            private static void AppendTableGrid(
+                StringBuilder content,
+                double tableLeft,
+                double tableRight,
+                double tableTop,
+                double tableBottom,
+                double numberColumnRight,
+                double matrixColumnRight,
+                double rowHeight)
+            {
+                AppendLine(content, tableLeft, tableBottom, tableLeft, tableTop);
+                AppendLine(content, numberColumnRight, tableBottom, numberColumnRight, tableTop);
+                AppendLine(content, matrixColumnRight, tableBottom, matrixColumnRight, tableTop);
+                AppendLine(content, tableRight, tableBottom, tableRight, tableTop);
+
+                for (var row = 0; row <= RowsPerPage; row++)
+                {
+                    var y = tableTop - (row * rowHeight);
+                    AppendLine(content, tableLeft, y, tableRight, y);
+                }
+            }
+
+            private static void AppendLine(StringBuilder content, double x1, double y1, double x2, double y2)
+            {
+                content
+                    .Append(Format(x1)).Append(' ')
+                    .Append(Format(y1)).Append(" m ")
+                    .Append(Format(x2)).Append(' ')
+                    .Append(Format(y2)).AppendLine(" l S");
             }
 
             private static BitMatrix CreateMatrix(string code)
@@ -166,13 +225,69 @@ namespace CryptoCodeControlAutomation.Application.Features.DataMatrixPrints.Comm
                     .Append(' ')
                     .Append(Format(y))
                     .Append(" Td (")
-                    //.Append(EscapePdfText(text))
+                    .Append(EscapePdfText(text))
                     .AppendLine(") Tj ET");
             }
 
             private static string GetReadableText(string code)
             {
-                return code.Replace("\u001D", string.Empty);
+                const char groupSeparator = '\u001D';
+
+                if (string.IsNullOrWhiteSpace(code))
+                {
+                    return string.Empty;
+                }
+
+                var value = code.Trim();
+                var parts = new List<string>();
+
+                if (value.Length >= 18 && value.StartsWith("01", StringComparison.Ordinal))
+                {
+                    var gtin = value.Substring(2, 14);
+                    parts.Add($"(01) {gtin}");
+
+                    var index = 16;
+                    if (value.Length >= index + 2 && value.Substring(index, 2) == "21")
+                    {
+                        index += 2;
+                        var serialEnd = value.IndexOf(groupSeparator, index);
+                        var serial = serialEnd >= 0
+                            ? value[index..serialEnd]
+                            : value[index..];
+
+                        parts.Add($"(21) {serial}");
+                        index = serialEnd >= 0 ? serialEnd + 1 : value.Length;
+
+                        while (index < value.Length)
+                        {
+                            if (value[index] == groupSeparator)
+                            {
+                                index++;
+                                continue;
+                            }
+
+                            if (index + 2 > value.Length)
+                            {
+                                break;
+                            }
+
+                            var applicationIdentifier = value.Substring(index, 2);
+                            index += 2;
+
+                            var nextSeparator = value.IndexOf(groupSeparator, index);
+                            var applicationIdentifierValue = nextSeparator >= 0
+                                ? value[index..nextSeparator]
+                                : value[index..];
+
+                            parts.Add($"({applicationIdentifier}) {applicationIdentifierValue}");
+                            index = nextSeparator >= 0 ? nextSeparator + 1 : value.Length;
+                        }
+
+                        return string.Join(" ", parts);
+                    }
+                }
+
+                return value.Replace(groupSeparator, ' ');
             }
 
             private static string EscapePdfText(string value)
@@ -252,6 +367,13 @@ namespace CryptoCodeControlAutomation.Application.Features.DataMatrixPrints.Comm
             {
                 return value.ToString("0.###", Invariant);
             }
+
+            private static double EstimateTextWidth(string value, double fontSize)
+            {
+                return value.Length * fontSize * 0.55;
+            }
+
+            private sealed record DataMatrixPdfRow(int SerialNumber, string Code);
 
             private sealed record PdfObject(int Id, string Content)
             {

@@ -1,5 +1,6 @@
 using CryptoCodeControlAutomation.Domain.Entities;
 using Core.Persistence.Repositories;
+using CryptoCodeControlAutomation.Domain.Enums;
 
 namespace CryptoCodeControlAutomation.Application.Services.Repositories
 {
@@ -11,6 +12,6 @@ namespace CryptoCodeControlAutomation.Application.Services.Repositories
         Task<long> ImportCodesBulkInsert(long salesOrderItemId, string filePath, int firstRow = 0, string fieldTerminator = ",", string rowTerminator = "0x0d0a", CancellationToken cancellationToken = default);
         Task<long> ActivateAndStartPlannedOrder(SalesOrderItem salesOrderItem, string lineCode = "HAT1", CancellationToken cancellationToken = default);
         Task UpdateWithPlannedOrders(SalesOrderItem salesOrderItem, CancellationToken cancellationToken = default);
-        Task CompleteWithPlannedOrders(SalesOrderItem salesOrderItem, CancellationToken cancellationToken = default);
+        Task ChangeStatusWithPlannedOrders(SalesOrderItem salesOrderItem, SalesOrderItemStatus status, CancellationToken cancellationToken = default);
     }
 }

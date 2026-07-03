@@ -12,6 +12,7 @@ namespace CryptoCodeControlAutomation.Domain.Entities
         public string LineCode { get; set; }
         public int? TotalCaseQty { get; set; }
         public int TotalUnitQty { get; set; }
+        public int OriginalTotalUnitQty { get; set; }
         public bool P1Enabled { get; set; }
         public bool P2Enabled { get; set; }
         public bool P3Enabled { get; set; }

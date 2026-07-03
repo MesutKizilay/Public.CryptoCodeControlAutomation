@@ -41,9 +41,11 @@ namespace CryptoCodeControlAutomation.Application.Features.SalesOrderItems.Comma
                 await _salesOrderItemRepository.Delete4(request.Id, cancellationToken);
                 stopwatch.Stop();
 
-                salesOrderItem.IsOpen = false;
-                salesOrderItem.Status = SalesOrderItemStatus.Cancelled;
-                await _salesOrderItemRepository.Update(salesOrderItem);
+                //salesOrderItem.IsOpen = false;
+                //salesOrderItem.Status = SalesOrderItemStatus.Cancelled;
+                //await _salesOrderItemRepository.Update(salesOrderItem);
+
+                await _salesOrderItemRepository.ChangeStatusWithPlannedOrders(salesOrderItem, SalesOrderItemStatus.Cancelled, cancellationToken);
 
                 var uploadJob = await _uploadJobRepository.Get(b => b.SalesOrderItemId == request.Id, cancellationToken: cancellationToken);
                 uploadJob.Status = UploadJobStatus.Deleted;

@@ -5,6 +5,7 @@ namespace CryptoCodeControlAutomation.Application.Features.UploadJobs.Queries.Ge
         public long UploadJobId { get; set; }
         public long SalesOrderItemId { get; set; }
         public string? FilePath { get; set; }
+        public string? FileName => string.IsNullOrWhiteSpace(FilePath) ? null : Path.GetFileName(FilePath);
         public byte Status { get; set; }
         public int? TotalRows { get; set; }
         public int? InsertedRows { get; set; }

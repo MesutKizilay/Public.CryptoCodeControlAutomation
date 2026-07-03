@@ -156,7 +156,6 @@
 		<div class="offcanvas-body mx-0 flex-grow-0">
 			<div id="editLabelForm" onsubmit="return false" novalidate>
 				<input type="hidden" id="edit-id">
-				<input type="hidden" id="edit-status">
 
 				<div class="row g-3">
 					<div class="col-md-7">
@@ -166,6 +165,14 @@
 					<div class="col-md-5">
 						<label class="form-label" for="edit-salesItemNo">Sales Item No</label>
 						<input type="text" class="form-control" id="edit-salesItemNo" placeholder="Otomatik" readonly />
+					</div>
+					<div class="col-md-12">
+						<label class="form-label" for="edit-status">Durum</label>
+						<select id="edit-status" class="form-select">
+							<option value="3">Pasif</option>
+							<option value="0">Aktif</option>
+							<option value="1">Tamamlandı</option>
+						</select>
 					</div>
 					<hr />
 					<div class="col-md-6">
