@@ -198,7 +198,13 @@ $(function () {
             });
         },
         columns: [
-            { data: "codeValue", title: "Kod" },
+            {
+                data: 'codeValue',
+                title: 'Kod',
+                render: function (data) {
+                    return $('<div>').text(data ?? '').html();
+                }
+            },
             {
                 data: "status",
                 title: "Durum",
