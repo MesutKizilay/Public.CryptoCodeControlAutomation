@@ -40,14 +40,24 @@ $(function () {
 
         flatpickr(shiftDateInput, {
             mode: "range",
-            dateFormat: "Y-m-d",
+            dateFormat: "d-m-Y",
+            //dateFormat: "Y-m-d",
             monthSelectorType: "static",
             conjunction: " to ",
             onChange: function (selectedDates) {
                 selectedShiftDates = selectedDates.slice(0, 2);
             },
-            onClose: function (selectedDates) {
+            onClose: function (selectedDates, _dateStr, instance) {
                 selectedShiftDates = selectedDates.slice(0, 2);
+
+                if (selectedDates.length === 1) {
+                    const formattedDate = instance.formatDate(selectedDates[0], instance.config.dateFormat);
+
+                    window.setTimeout(function () {
+                        const displayInput = instance.altInput ?? instance.input;
+                        displayInput.value = formattedDate;
+                    }, 0);
+                }
             }
         });
     };

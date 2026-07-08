@@ -12,22 +12,41 @@
         }
 
         .summary-card {
+            height: 100%;
             min-height: 104px;
         }
 
-            .summary-card .summary-value {
-                font-size: 1.8rem;
-                font-weight: 700;
-                line-height: 1;
-            }
+        .summary-card .card-body {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
 
-            .summary-card .summary-label {
-                color: #697a8d;
-                font-size: 0.78rem;
-                font-weight: 600;
-                letter-spacing: 0;
-                text-transform: uppercase;
+        .summary-card .summary-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .summary-card .summary-label {
+            color: #697a8d;
+            font-size: 0.78rem;
+            font-weight: 600;
+            letter-spacing: 0;
+            min-height: 2rem;
+            text-transform: uppercase;
+        }
+
+        .adjustment-action-btn {
+            min-height: 38px;
+            white-space: nowrap;
+        }
+
+        @@media (max-width: 575.98px) {
+            .adjustment-action-btn {
+                white-space: normal;
             }
+        }
 
         #adjust-daily-produced-table tbody tr[data-shift-date] {
             cursor: pointer;
@@ -46,21 +65,21 @@
     </div>
     <div class="card-body">
         <div class="row g-3 align-items-end">
-            <div class="col-md-4">
+            <div class="col-12 col-md-4">
                 <label class="form-label" for="adjust-salesorder">Satış Siparişi</label>
                 <select id="adjust-salesorder" class="form-select"></select>
             </div>
-            <div class="col-md-4">
+            <div class="col-12 col-md-4">
                 <label class="form-label" for="adjust-plannedorder">Planlı Sipariş</label>
                 <select id="adjust-plannedorder" class="form-select"></select>
             </div>
-            <div class="col-md-2">
-                <button id="adjust-summary-btn" class="btn btn-primary w-100">
+            <div class="col-12 col-sm-2">
+                <button id="adjust-summary-btn" class="btn btn-primary w-100 adjustment-action-btn">
                     <i class="bx bx-bar-chart-alt-2 me-1"></i>Özet Getir
                 </button>
             </div>
-            <div class="col-md-2">
-                <button id="reset-production-btn" class="btn btn-outline-danger w-100">
+            <div class="col-12 col-sm-2">
+                <button id="reset-production-btn" class="btn btn-outline-danger w-100 adjustment-action-btn">
                     <i class="bx bx-reset me-1"></i>Üretimi Sıfırla
                 </button>
             </div>

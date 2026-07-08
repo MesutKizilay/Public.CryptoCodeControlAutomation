@@ -19,9 +19,12 @@ namespace CryptoCodeControlAutomation.Persistence.Repositories
 
         public async Task<int> UpdateScrapCodes(List<long> ids, CodeStatus status, CancellationToken cancellationToken = default)
         {
+            var scrappedAt = DateTime.Now;
+
             return await Context.Codes.Where(c => ids.Contains(c.CodeId))
                                       .ExecuteUpdateAsync(setters => setters.SetProperty(c => c.Status, status)
-                                                                            .SetProperty(c => c.UpdatedAt, DateTime.Now),
+                                                                            .SetProperty(c => c.UpdatedAt, scrappedAt)
+                                                                            .SetProperty(c => c.ScrapAt, scrappedAt),
                                                                              cancellationToken);
         }
 

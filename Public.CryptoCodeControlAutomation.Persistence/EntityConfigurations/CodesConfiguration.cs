@@ -24,6 +24,7 @@ namespace CryptoCodeControlAutomation.Persistence.EntityConfigurations
             builder.Property(c => c.ProducedAt).IsRequired(false);
             builder.Property(c => c.ShiftDate).HasColumnType("date").IsRequired(false);
             builder.Property(c => c.ExpirationDate).HasColumnType("date").IsRequired(false);
+            builder.Property(c => c.ScrapAt).HasColumnType("datetime2(3)").IsRequired(false);
             builder.Property(c => c.UpdatedAt).HasDefaultValueSql("sysdatetime()").IsRequired();
         }
     }
