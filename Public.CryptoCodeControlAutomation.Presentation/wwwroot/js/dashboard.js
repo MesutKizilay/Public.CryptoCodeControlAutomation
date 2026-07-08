@@ -99,13 +99,33 @@ $(function () {
             if (!el || !window.ApexCharts) return;
 
             codeStatusChart = new ApexCharts(el, {
-                chart: { type: "donut", height: 320 },
+                chart: { type: "donut", height: 320, offsetX: 40 },
                 labels: ["Available", "Allocated", "ProducedOk", "Reject Kurtarma", "Scrap", "Void"],
                 series: series,
-                legend: { position: "bottom" },
+                //legend: { position: "bottom" },
+                legend: {
+                    position: "right",
+                    offsetX: 180,
+                    //itemMargin: { horizontal: 19, vertical: 4 },
+                    formatter: function (seriesName, opts) {
+                        const value = opts.w.globals.series[opts.seriesIndex] ?? 0;
+                        return `${seriesName}: ${value.toLocaleString("tr-TR")}`;
+                    }
+                },
                 dataLabels: { enabled: true },
+                // dataLabels: {
+                //     enabled: true,
+                //     formatter: function (val, opts) {
+                //         const value = opts.w.config.series[opts.seriesIndex] ?? 0;
+                //         return value.toLocaleString("tr-TR");
+                //     }
+                // },
                 colors: ["#00cfe8", "#7367f0", "#28c76f", "#ff9f43", "#ea5455", "#4b4b4b"],
-                plotOptions: { pie: { donut: { size: "70%" } } }
+                plotOptions: {
+                    pie: {
+                        donut: { size: "70%" }
+                    }
+                }
             });
             codeStatusChart.render();
         }
