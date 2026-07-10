@@ -86,7 +86,7 @@
         const row = document.createElement("tr");
         row.dataset.codeId = codeId;
         row.innerHTML = `
-            <td>${code}</td>
+            <td>${$('<div>').text(code).html()}</td>
             <td>${new Date().toLocaleString("tr-TR")}</td>
             <td><button type="button" class="btn btn-sm btn-outline-danger scraps-remove-btn">Sil</button></td>
         `;

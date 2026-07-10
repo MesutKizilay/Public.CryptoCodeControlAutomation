@@ -20,6 +20,5 @@ namespace CryptoCodeControlAutomation.Domain.Entities
         public DateTime? UpdatedAt { get; set; }
         public DateTime? RecoverAt { get; set; }
         public DateTime? ScrapAt { get; set; }
-
     }
 }

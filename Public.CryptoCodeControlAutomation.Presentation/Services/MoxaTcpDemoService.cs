@@ -176,8 +176,9 @@ namespace CryptoCodeControlAutomation.Presentation.Services
                     {
                         readCount = await stream.ReadAsync(buffer.AsMemory(), readCancellationTokenSource.Token);
                     }
-                    catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested && pending.Length > 0)
+                    catch (OperationCanceledException ex) when (!cancellationToken.IsCancellationRequested && pending.Length > 0)
                     {
+                        //throw;
                         PublishPendingMessage(pending, source);
                         continue;
                     }
