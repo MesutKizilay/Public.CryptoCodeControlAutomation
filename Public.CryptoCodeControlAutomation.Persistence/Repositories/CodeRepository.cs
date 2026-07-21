@@ -37,33 +37,33 @@ namespace CryptoCodeControlAutomation.Persistence.Repositories
             {
                 0 => await query.ExecuteUpdateAsync(
                     setters => setters.SetProperty(c => c.Status, status)
-                                      .SetProperty(c => c.ProducedAt, c => c.AllocatedAt)
-                                      .SetProperty(c => c.ShiftDate, c => c.AllocatedAt!.Value.AddHours(-8).Date)
-                                      .SetProperty(c => c.ExpirationDate, c => c.AllocatedAt!.Value.AddHours(-8).Date.AddDays(shelfLifeValue))
+                                      .SetProperty(c => c.ProducedAt, recoveredAt)
+                                      .SetProperty(c => c.ShiftDate, recoveredAt.AddHours(-8).Date)
+                                      .SetProperty(c => c.ExpirationDate, recoveredAt.AddHours(-8).Date.AddDays(shelfLifeValue))
                                       .SetProperty(c => c.UpdatedAt, recoveredAt)
                                       .SetProperty(c => c.RecoverAt, recoveredAt),
                     cancellationToken),
                 1 => await query.ExecuteUpdateAsync(
                     setters => setters.SetProperty(c => c.Status, status)
-                                      .SetProperty(c => c.ProducedAt, c => c.AllocatedAt)
-                                      .SetProperty(c => c.ShiftDate, c => c.AllocatedAt!.Value.AddHours(-8).Date)
-                                      .SetProperty(c => c.ExpirationDate, c => c.AllocatedAt!.Value.AddHours(-8).Date.AddDays(shelfLifeValue * 7))
+                                      .SetProperty(c => c.ProducedAt, recoveredAt)
+                                      .SetProperty(c => c.ShiftDate, recoveredAt.AddHours(-8).Date)
+                                      .SetProperty(c => c.ExpirationDate, recoveredAt.AddHours(-8).Date.AddDays(shelfLifeValue * 7))
                                       .SetProperty(c => c.UpdatedAt, recoveredAt)
                                       .SetProperty(c => c.RecoverAt, recoveredAt),
                     cancellationToken),
                 2 => await query.ExecuteUpdateAsync(
                     setters => setters.SetProperty(c => c.Status, status)
-                                      .SetProperty(c => c.ProducedAt, c => c.AllocatedAt)
-                                      .SetProperty(c => c.ShiftDate, c => c.AllocatedAt!.Value.AddHours(-8).Date)
-                                      .SetProperty(c => c.ExpirationDate, c => c.AllocatedAt!.Value.AddHours(-8).Date.AddMonths(shelfLifeValue))
+                                      .SetProperty(c => c.ProducedAt, recoveredAt)
+                                      .SetProperty(c => c.ShiftDate, recoveredAt.AddHours(-8).Date)
+                                      .SetProperty(c => c.ExpirationDate, recoveredAt.AddHours(-8).Date.AddMonths(shelfLifeValue))
                                       .SetProperty(c => c.UpdatedAt, recoveredAt)
                                       .SetProperty(c => c.RecoverAt, recoveredAt),
                     cancellationToken),
                 3 => await query.ExecuteUpdateAsync(
                     setters => setters.SetProperty(c => c.Status, status)
-                                      .SetProperty(c => c.ProducedAt, c => c.AllocatedAt)
-                                      .SetProperty(c => c.ShiftDate, c => c.AllocatedAt!.Value.AddHours(-8).Date)
-                                      .SetProperty(c => c.ExpirationDate, c => c.AllocatedAt!.Value.AddHours(-8).Date.AddYears(shelfLifeValue))
+                                      .SetProperty(c => c.ProducedAt, recoveredAt)
+                                      .SetProperty(c => c.ShiftDate, recoveredAt.AddHours(-8).Date)
+                                      .SetProperty(c => c.ExpirationDate, recoveredAt.AddHours(-8).Date.AddYears(shelfLifeValue))
                                       .SetProperty(c => c.UpdatedAt, recoveredAt)
                                       .SetProperty(c => c.RecoverAt, recoveredAt),
                     cancellationToken),

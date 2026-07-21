@@ -33,21 +33,27 @@ namespace CryptoCodeControlAutomation.Application.Features.Codes.Queries.GetCode
                     query = query.Where(c => c.PlannedOrderId == request.PlannedOrderId.Value);
                 }
 
-                var statusCounts = await query
-                    .GroupBy(c => c.Status)
-                    .Select(g => new { Status = g.Key, Count = g.Count() })
-                    .ToListAsync(cancellationToken);
-
-                int GetCount(CodeStatus status) => statusCounts.FirstOrDefault(x => x.Status == status)?.Count ?? 0;
+                var counts = await query
+                    .GroupBy(_ => 1)
+                    .Select(group => new
+                    {
+                        Available = group.Count(c => c.Status == CodeStatus.Available),
+                        Allocated = group.Count(c => c.Status == CodeStatus.Allocated),
+                        ProducedTotal = group.Count(c => c.Status == CodeStatus.ProducedOk),
+                        Reject = group.Count(c => c.Status == CodeStatus.ProducedOk && c.RecoverAt.HasValue),
+                        Scrap = group.Count(c => c.Status == CodeStatus.Scrap),
+                        Void = group.Count(c => c.Status == CodeStatus.Void)
+                    })
+                    .FirstOrDefaultAsync(cancellationToken);
 
                 var dto = new GetCodeStatusSummaryDto
                 {
-                    Available = GetCount(CodeStatus.Available),
-                    Allocated = GetCount(CodeStatus.Allocated),
-                    ProducedOk = GetCount(CodeStatus.ProducedOk),
-                    Reject = GetCount(CodeStatus.Reject),
-                    Scrap = GetCount(CodeStatus.Scrap),
-                    Void = GetCount(CodeStatus.Void)
+                    Available = counts?.Available ?? 0,
+                    Allocated = counts?.Allocated ?? 0,
+                    ProducedOk = (counts?.ProducedTotal ?? 0) - (counts?.Reject ?? 0),
+                    Reject = counts?.Reject ?? 0,
+                    Scrap = counts?.Scrap ?? 0,
+                    Void = counts?.Void ?? 0
                 };
 
                 dto.Total = dto.Available + dto.Allocated + dto.ProducedOk + dto.Reject + dto.Scrap + dto.Void;

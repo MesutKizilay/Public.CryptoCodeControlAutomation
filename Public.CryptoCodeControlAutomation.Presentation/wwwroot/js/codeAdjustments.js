@@ -272,7 +272,7 @@ $(function () {
     };
 
     const sendShiftDateAdjustment = (payload) => {
-        showLoading("üretim tarihi güncelleniyor...");
+        showLoading("Üretim tarihi güncelleniyor...");
 
         $.ajax({
             url: "/Codes/AdjustCodeShiftDate",

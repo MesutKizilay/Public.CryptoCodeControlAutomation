@@ -123,7 +123,7 @@ $(function () {
                 colors: ["#00cfe8", "#7367f0", "#28c76f", "#ff9f43", "#ea5455", "#4b4b4b"],
                 plotOptions: {
                     pie: {
-                        donut: { size: "70%" }
+                        donut: { size: "7%" }
                     }
                 }
             });
