@@ -94,12 +94,14 @@ namespace CryptoCodeControlAutomation.Persistence.Repositories
                                   .SetProperty(c => c.AllocatedAt, (DateTime?)null)
                                   .SetProperty(c => c.ProducedAt, (DateTime?)null)
                                   .SetProperty(c => c.ShiftDate, (DateTime?)null)
+                                  .SetProperty(c => c.RecoverAt, (DateTime?)null)
+                                  .SetProperty(c => c.UpdatedAt, updatedAt)
                                   .SetProperty(c => c.ExpirationDate, (DateTime?)null)
-                                  .SetProperty(c => c.UpdatedAt, updatedAt),
+                                  .SetProperty(c => c.ScrapAt, (DateTime?)null)
+                                  .SetProperty(c => c.IsScrapAllocated, false),
                 cancellationToken);
 
-            await Context.Database.ExecuteSqlInterpolatedAsync($"""
-                                                                
+            await Context.Database.ExecuteSqlInterpolatedAsync($"""                                                                
                                                                     UPDATE cz.PlannedOrderCodeCursor
                                                                     SET NextCodeId = NULL
                                                                     WHERE ({salesOrderItemId} IS NULL OR SalesOrderItemId = {salesOrderItemId})

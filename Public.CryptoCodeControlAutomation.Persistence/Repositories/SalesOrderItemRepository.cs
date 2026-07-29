@@ -266,7 +266,7 @@ namespace CryptoCodeControlAutomation.Persistence.Repositories
 
                 foreach (var plannedOrder in plannedOrders)
                 {
-                    plannedOrder.TotalUnitQty = totalUnitQty;
+                    //plannedOrder.TotalUnitQty = totalUnitQty;
                     plannedOrder.OriginalTotalUnitQty = salesOrderItem.SapPlannedUnitQty;
                     plannedOrder.MaterialNo = salesOrderItem.MaterialNo;
                     plannedOrder.TotalCaseQty = salesOrderItem.SapCaseQty;
