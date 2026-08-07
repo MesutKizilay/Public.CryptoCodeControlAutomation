@@ -48,7 +48,7 @@ namespace CryptoCodeControlAutomation.Application.Features.Codes.Commands.Recove
                     (byte)salesOrderItem.ShelfLifeUnit,
                     cancellationToken);
 
-                return new RecoverCodesResponse { UpdatedCount = updated };
+                return new RecoverCodesResponse { UpdatedCount = request.CodeIds.Count };
             }
         }
     }

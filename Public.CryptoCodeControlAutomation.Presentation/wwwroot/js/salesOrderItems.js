@@ -384,7 +384,11 @@
                     const has92 = line.includes(gs + "92");
                     const hasGroup = has93 || (has91 && has92);
 
-                    if (!(hasPrefix && hasGroup)) {
+                    //if (!(hasPrefix && hasGroup)) {
+                    //    invalidCount++;
+                    //}
+
+                    if (hasPrefix) {
                         invalidCount++;
                     }
                 }
