@@ -50,7 +50,7 @@
 
         <RefreshView x:Name="Refresher" Refreshing="Refresher_Refreshing">
             <WebView x:Name="Browser"
-               Source="http://192.168.150.81:6868"
+               Source="http://192.168.20.24:6868"
                Navigating="Browser_Navigating"
                Navigated="Browser_Navigated" />
         </RefreshView>

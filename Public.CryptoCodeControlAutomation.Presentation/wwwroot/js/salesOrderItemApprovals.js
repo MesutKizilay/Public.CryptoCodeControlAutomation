@@ -168,7 +168,7 @@ $(function () {
             "<'row mx-2 mt-2'<'col-sm-12 col-md-6'i><'col-sm-12 col-md-6'p>>",
         order: [[0, "desc"]],
         lengthMenu: [10, 25, 50, 100],
-        language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/tr.json" }
+        language: { url: "../../assets/vendor/libs/datatables-bs5/i18n/tr.json" }
     });
 
     dt.on("init", function () {

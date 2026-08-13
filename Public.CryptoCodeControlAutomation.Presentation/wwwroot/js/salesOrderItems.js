@@ -143,7 +143,8 @@
 
         order: [[1, 'desc']],
         lengthMenu: [10, 25, 50, 100],
-        language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/tr.json" }
+        language: { url: "../../assets/vendor/libs/datatables-bs5/i18n/tr.json" }
+        //language: { url: "https://cdn.datatables.net/plug-ins/1.13.6/i18n/tr.json" }
     });
 
     dt.on('draw', function () {
@@ -388,7 +389,7 @@
                     //    invalidCount++;
                     //}
 
-                    if (hasPrefix) {
+                    if (!hasPrefix) {
                         invalidCount++;
                     }
                 }

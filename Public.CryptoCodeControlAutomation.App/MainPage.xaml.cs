@@ -6,7 +6,7 @@ namespace CryptoCodeControlAutomation.App
     public partial class MainPage : ContentPage
     {
         int count = 0;
-        readonly string AllowedHost = new Uri("http://192.168.150.81:6868").Host;
+        readonly string AllowedHost = new Uri("http://192.168.20.24:6868").Host;
         //readonly string AllowedHost = new Uri("http://10.11.2.154:5000").Host;
         //readonly string AllowedHost = new Uri("http://10.11.2.154:5000").Host;
 
