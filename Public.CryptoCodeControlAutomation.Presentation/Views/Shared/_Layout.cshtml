@@ -72,9 +72,9 @@
         }
 
         /* .logo-img {
-                                                    height: 38px;
-                                                    mix-blend-mode: multiply;
-                                                } */
+                                                            height: 38px;
+                                                            mix-blend-mode: multiply;
+                                                        } */
 
 
         .app-brand-link {
@@ -104,12 +104,12 @@
 
 
         /* .layout-menu-collapsed .logo-img {
-                                            height: 38px;
-                                            width: auto;
-                                            object-fit: none;
-                                            object-position: left center;
-                                        }
-                                        */
+                                                    height: 38px;
+                                                    width: auto;
+                                                    object-fit: none;
+                                                    object-position: left center;
+                                                }
+                                                */
 
 
     </style>
@@ -185,17 +185,16 @@
 
                 <ul class="menu-inner py-1">
                     <!-- Page -->
-                    
                     @* <li class="menu-item">
                         <a href="/Home/HomePage" class="menu-link" data-active-when="/,/home,/home/index">
                             <i class="menu-icon tf-icons bx bx-home-circle"></i>
                             <div data-i18n="Dashboard">Ana Sayfa</div>
                         </a>
                     </li> *@
-                    @* @if (User.IsInRole("Admin") || User.IsInRole("Supervisor"))
-                    { *@
+                    @if (User.IsInRole("Admin") || User.IsInRole("Supervisor"))
+                    {
                         <li class="menu-item">
-                            <a href="/Dashboard/Dashboard" class="menu-link" >
+                            <a href="/Dashboard/Dashboard" class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-bar-chart-alt-2"></i>
                                 <div data-i18n="Dashboard">Dashboard</div>
                             </a>
@@ -212,7 +211,7 @@
                                 <div data-i18n="List">Sipariş Onayları</div>
                             </a>
                         </li>
-                    @* } *@
+                    }
 
 
                     <li class="menu-item">
@@ -233,15 +232,14 @@
                             <div data-i18n="List">Kod Sorgulama</div>
                         </a>
                     </li>
-                    <li class="menu-item">
-                        <a href="/DatamatrixPrints/DatamatrixPrints" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-qr"></i>
-                            <div data-i18n="List">Datamatrix PDF</div>
-                        </a>
-                    </li>
-                    @* @if (User.IsInRole("Admin") || User.IsInRole("Supervisor"))
-                    { *@
-
+                    @if (User.IsInRole("Admin") || User.IsInRole("Supervisor"))
+                    {
+                        <li class="menu-item">
+                            <a href="/DatamatrixPrints/DatamatrixPrints" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-qr"></i>
+                                <div data-i18n="List">Datamatrix PDF</div>
+                            </a>
+                        </li>
                         <li class="menu-item">
                             <a href="/Codes/CodeReports" class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-file"></i>
@@ -249,18 +247,18 @@
                             </a>
                         </li>
 
-                    <li class="menu-item">
-                        <a href="/Codes/CodeAdjustments" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-wrench"></i>
-                            <div data-i18n="List">Üretim Manipülasyonu</div>
-                        </a>
-                    </li>
-                    <li class="menu-item">
-                        <a href="/CodeAdjustmentLogs/CodeAdjustmentLogs" class="menu-link">
-                            <i class="menu-icon tf-icons bx bx-history"></i>
-                            <div data-i18n="List">Manipülasyon Geçmişi</div>
-                        </a>
-                    </li>
+                        <li class="menu-item">
+                            <a href="/Codes/CodeAdjustments" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-wrench"></i>
+                                <div data-i18n="List">Üretim Manipülasyonu</div>
+                            </a>
+                        </li>
+                        <li class="menu-item">
+                            <a href="/CodeAdjustmentLogs/CodeAdjustmentLogs" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-history"></i>
+                                <div data-i18n="List">Manipülasyon Geçmişi</div>
+                            </a>
+                        </li>
 
                         <li class="menu-item">
                             <a href="/Users/Users" class="menu-link">
@@ -269,7 +267,7 @@
                             </a>
                         </li>
 
-                       @*  <li class="menu-item">
+                        @*  <li class="menu-item">
                             <a href="/Test2/Index" class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-user"></i>
                                 <div data-i18n="Users">Test2</div>
@@ -282,7 +280,7 @@
                                 <div data-i18n="Users">Test</div>
                             </a>
                         </li> *@
-                    @* } *@
+                    }
                 </ul>
             </aside>
             <!-- / Menu -->
