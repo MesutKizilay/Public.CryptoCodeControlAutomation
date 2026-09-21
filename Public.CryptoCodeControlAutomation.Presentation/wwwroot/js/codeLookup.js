@@ -16,7 +16,7 @@
         0: { label: "Hazır", color: "secondary" },
         1: { label: "Tasnif Edilmiş", color: "info" },
         2: { label: "Üretilmiş", color: "success" },
-        3: { label: "Iskarta", color: "warning" },
+        3: { label: "Reject Kurtarma", color: "warning" },
         4: { label: "Fire", color: "danger" },
         5: { label: "Boş", color: "dark" }
     };
