@@ -31,12 +31,17 @@ namespace CryptoCodeControlAutomation.Application.Features.Codes.Commands.Adjust
 
             RuleFor(x => x)
                 .Must(IsAllowedTransition)
-                .WithMessage("Sadece Allocated ve ProducedOk arasindaki gecislere izin verilir.");
+                .WithMessage("Gecerli bir durum gecisi secilmelidir.");
 
             RuleFor(x => x.ShiftDate)
                 .NotNull()
-                .When(x => IsAllowedTransition(x))
+                .When(RequiresShiftDate)
                 .WithMessage("Kod durumu duzeltilirken uretim tarihi zorunludur.");
+
+            RuleFor(x => x.Password)
+                .NotEmpty()
+                .When(IsAvailableTransition)
+                .WithMessage("Sifre zorunludur.");
         }
 
         private static bool HasValidId(long? id)
@@ -45,6 +50,19 @@ namespace CryptoCodeControlAutomation.Application.Features.Codes.Commands.Adjust
         }
 
         private static bool IsAllowedTransition(AdjustCodeStatusCommand command)
+        {
+            return IsAvailableTransition(command)
+                || command.FromStatus == CodeStatus.Allocated && command.ToStatus == CodeStatus.ProducedOk
+                || command.FromStatus == CodeStatus.ProducedOk && command.ToStatus == CodeStatus.Allocated;
+        }
+
+        private static bool IsAvailableTransition(AdjustCodeStatusCommand command)
+        {
+            return command.FromStatus == CodeStatus.Available && command.ToStatus == CodeStatus.Allocated
+                || command.FromStatus == CodeStatus.Allocated && command.ToStatus == CodeStatus.Available;
+        }
+
+        private static bool RequiresShiftDate(AdjustCodeStatusCommand command)
         {
             return command.FromStatus == CodeStatus.Allocated && command.ToStatus == CodeStatus.ProducedOk
                 || command.FromStatus == CodeStatus.ProducedOk && command.ToStatus == CodeStatus.Allocated;

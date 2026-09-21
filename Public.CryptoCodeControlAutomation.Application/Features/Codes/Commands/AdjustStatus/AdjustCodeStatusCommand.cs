@@ -5,14 +5,19 @@ using Core.CrossCuttingConcerns.Exceptions.Types;
 using CryptoCodeControlAutomation.Application.Services.Repositories;
 using CryptoCodeControlAutomation.Domain.Entities;
 using CryptoCodeControlAutomation.Domain.Enums;
+using CryptoCodeControlAutomation.Persistence.Repositories;
 using MediatR;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Public.CryptoCodeControlAutomation.Application.Features.Codes.Commands.AdjustStatus;
 
 namespace CryptoCodeControlAutomation.Application.Features.Codes.Commands.AdjustStatus
 {
     public class AdjustCodeStatusCommand : IRequest<AdjustCodeStatusResponse>,ISecuredRequest
     {
+        private const string SensitiveTransitionPassword = "kgt";
+
         public long? SalesOrderItemId { get; set; }
         public long? PlannedOrderId { get; set; }
         public CodeStatus FromStatus { get; set; }
@@ -20,6 +25,7 @@ namespace CryptoCodeControlAutomation.Application.Features.Codes.Commands.Adjust
         public int Quantity { get; set; }
         public DateTime? ShiftDate { get; set; }
         public string Reason { get; set; } = string.Empty;
+        public string? Password { get; set; }
 
         public string[] Roles => new[] { "Supervisor" };
 
@@ -27,19 +33,36 @@ namespace CryptoCodeControlAutomation.Application.Features.Codes.Commands.Adjust
         {
             private readonly ICodeRepository _codeRepository;
             private readonly ISalesOrderItemRepository _salesOrderItemRepository;
+            private readonly IPlannedOrderSalesLinkRepository _plannedOrderSalesLinkRepository;
             private readonly ICodeAdjustmentLogRepository _codeAdjustmentLogRepository;
             private readonly IHttpContextAccessor _httpContextAccessor;
 
-            public AdjustCodeStatusCommandHandler(ICodeRepository codeRepository, ISalesOrderItemRepository salesOrderItemRepository, ICodeAdjustmentLogRepository codeAdjustmentLogRepository, IHttpContextAccessor httpContextAccessor)
+            public AdjustCodeStatusCommandHandler(
+                ICodeRepository codeRepository,
+                ISalesOrderItemRepository salesOrderItemRepository,
+                IPlannedOrderSalesLinkRepository plannedOrderSalesLinkRepository,
+                ICodeAdjustmentLogRepository codeAdjustmentLogRepository,
+                IHttpContextAccessor httpContextAccessor)
             {
                 _codeRepository = codeRepository;
                 _salesOrderItemRepository = salesOrderItemRepository;
+                _plannedOrderSalesLinkRepository = plannedOrderSalesLinkRepository;
                 _codeAdjustmentLogRepository = codeAdjustmentLogRepository;
                 _httpContextAccessor = httpContextAccessor;
             }
 
             public async Task<AdjustCodeStatusResponse> Handle(AdjustCodeStatusCommand request, CancellationToken cancellationToken)
             {
+                if (IsAvailableTransition(request))
+                {
+                    ValidateSensitiveTransitionPassword(request.Password);
+                    await ResolvePlannedOrderSelection(request, cancellationToken);
+
+                    return request.FromStatus == CodeStatus.Available
+                        ? await ApplyAvailableToAllocated(request, cancellationToken)
+                        : await ApplyAllocatedToAvailable(request, cancellationToken);
+                }
+
                 var query = ApplySelection(_codeRepository.Query(), request)
                     .Where(c => c.Status == request.FromStatus);
 
@@ -92,8 +115,179 @@ namespace CryptoCodeControlAutomation.Application.Features.Codes.Commands.Adjust
                 {
                     UpdatedCount = codes.Count,
                     CodeAdjustmentLogId = log.CodeAdjustmentLogId,
-                    Message = $"{codes.Count} kod g�ncellendi."
+                    Message = $"{codes.Count} kod güncellendi."
                 };
+            }
+
+            private async Task<AdjustCodeStatusResponse> ApplyAvailableToAllocated(
+                AdjustCodeStatusCommand request,
+                CancellationToken cancellationToken)
+            {
+                List<CodeAllocationResult> allocatedCodes;
+
+                try
+                {
+                    allocatedCodes = await _codeRepository.AllocateAvailableCodes(
+                        request.PlannedOrderId!.Value,
+                        request.Quantity,
+                        cancellationToken);
+                }
+                catch (SqlException exception) when (exception.Number is >= 62000 and < 63000)
+                {
+                    var message = exception.Errors
+                        .Cast<SqlError>()
+                        .FirstOrDefault(error => error.Number == exception.Number)
+                        ?.Message ?? exception.Message;
+
+                    throw new BusinessException(message);
+                }
+                catch (InvalidOperationException exception)
+                {
+                    throw new BusinessException(exception.Message);
+                }
+
+                if (allocatedCodes.Count == 0)
+                    throw new BusinessException("Tahsis edilen kod bulunamadı.");
+
+                var now = DateTime.Now;
+                var log = CreateStatusLog(request, allocatedCodes.Count, now);
+                log.CreatedBy = GetCurrentUsername();
+
+                foreach (var code in allocatedCodes)
+                {
+                    log.Items.Add(new CodeAdjustmentLogItem
+                    {
+                        CodeId = code.CodeId,
+                        CodeValue = code.CodeValue,
+                        OldStatus = CodeStatus.Available,
+                        NewStatus = CodeStatus.Allocated
+                    });
+                }
+
+                await _codeAdjustmentLogRepository.Add(log, cancellationToken);
+
+                return CreateResponse(allocatedCodes.Count, log.CodeAdjustmentLogId);
+            }
+
+            private async Task<AdjustCodeStatusResponse> ApplyAllocatedToAvailable(
+                AdjustCodeStatusCommand request,
+                CancellationToken cancellationToken)
+            {
+                var codes = await ApplySelection(_codeRepository.Query(), request)
+                    .AsNoTracking()
+                    .Where(c => c.Status == CodeStatus.Allocated)
+                    .OrderBy(c => c.AllocatedAt == null)
+                    .ThenBy(c => c.AllocatedAt)
+                    .ThenBy(c => c.CodeId)
+                    .Take(request.Quantity)
+                    .ToListAsync(cancellationToken);
+
+                if (codes.Count < request.Quantity)
+                {
+                    throw new BusinessException($"Kaynak durumda yeterli kod yok. Bulunan: {codes.Count}, istenen: {request.Quantity}.");
+                }
+
+                var updatedCount = await _codeRepository.ResetAllocatedCodesToAvailable(
+                    codes.Select(c => c.CodeId).ToList(),
+                    request.PlannedOrderId!.Value,
+                    cancellationToken);
+
+                if (updatedCount != codes.Count)
+                    throw new BusinessException("Seçilen kodların tamamı kullanılabilir duruma alınamadı.");
+
+                var now = DateTime.Now;
+                var log = CreateStatusLog(request, updatedCount, now);
+                log.CreatedBy = GetCurrentUsername();
+
+                foreach (var code in codes)
+                {
+                    var oldStatus = code.Status;
+                    var oldShiftDate = code.ShiftDate;
+                    var oldProducedAt = code.ProducedAt;
+                    var oldExpirationDate = code.ExpirationDate;
+
+                    code.Status = CodeStatus.Available;
+                    code.ShiftDate = null;
+                    code.ProducedAt = null;
+                    code.ExpirationDate = null;
+
+                    AddLogItem(log, code, oldStatus, oldShiftDate, oldProducedAt, oldExpirationDate);
+                }
+
+                await _codeAdjustmentLogRepository.Add(log, cancellationToken);
+
+                return CreateResponse(updatedCount, log.CodeAdjustmentLogId);
+            }
+
+            private async Task ResolvePlannedOrderSelection(AdjustCodeStatusCommand request, CancellationToken cancellationToken)
+            {
+                var hasSalesOrderItem = request.SalesOrderItemId.HasValue && request.SalesOrderItemId.Value > 0;
+                var hasPlannedOrder = request.PlannedOrderId.HasValue && request.PlannedOrderId.Value > 0;
+
+                if (hasSalesOrderItem && hasPlannedOrder)
+                    return;
+
+                var links = _plannedOrderSalesLinkRepository.Query();
+                PlannedOrderSalesLink? link;
+
+                if (hasSalesOrderItem)
+                {
+                    link = await links.FirstOrDefaultAsync(
+                        item => item.SalesOrderItemId == request.SalesOrderItemId!.Value,
+                        cancellationToken);
+
+                    if (link is null)
+                        throw new BusinessException("Bu satış siparişine bağlı planlı sipariş bulunamadı.");
+                }
+                else
+                {
+                    link = await links.FirstOrDefaultAsync(
+                        item => item.PlannedOrderId == request.PlannedOrderId!.Value,
+                        cancellationToken);
+
+                    if (link is null)
+                        throw new BusinessException("Bu planlı siparişe bağlı satış siparişi bulunamadı.");
+                }
+
+                request.SalesOrderItemId = link.SalesOrderItemId;
+                request.PlannedOrderId = link.PlannedOrderId;
+            }
+
+            private static CodeAdjustmentLog CreateStatusLog(AdjustCodeStatusCommand request, int quantity, DateTime createdAt)
+            {
+                return new CodeAdjustmentLog
+                {
+                    OperationType = "StatusChange",
+                    SalesOrderItemId = request.SalesOrderItemId,
+                    PlannedOrderId = request.PlannedOrderId,
+                    FromStatus = request.FromStatus,
+                    ToStatus = request.ToStatus,
+                    Quantity = quantity,
+                    Reason = request.Reason.Trim(),
+                    CreatedAt = createdAt
+                };
+            }
+
+            private AdjustCodeStatusResponse CreateResponse(int updatedCount, long logId)
+            {
+                return new AdjustCodeStatusResponse
+                {
+                    UpdatedCount = updatedCount,
+                    CodeAdjustmentLogId = logId,
+                    Message = $"{updatedCount} kod güncellendi."
+                };
+            }
+
+            private static bool IsAvailableTransition(AdjustCodeStatusCommand request)
+            {
+                return request.FromStatus == CodeStatus.Available && request.ToStatus == CodeStatus.Allocated
+                    || request.FromStatus == CodeStatus.Allocated && request.ToStatus == CodeStatus.Available;
+            }
+
+            private static void ValidateSensitiveTransitionPassword(string? password)
+            {
+                if (password != SensitiveTransitionPassword)
+                    throw new BusinessException("Hatalı şifre girdiniz.");
             }
 
             private async Task ApplyAllocatedToProduced(
@@ -105,7 +299,7 @@ namespace CryptoCodeControlAutomation.Application.Features.Codes.Commands.Adjust
             {
                 if (codes.Any(c => !c.AllocatedAt.HasValue))
                 {
-                    throw new BusinessException("Tasnif tarihi olmayan kodlar �retildi durumuna al�namaz.");
+                    throw new BusinessException("Tasnif tarihi olmayan kodlar üretildi durumuna alınamaz.");
                 }
 
                 var salesOrderItemIds = codes.Select(c => c.SalesOrderItemId).Distinct().ToList();
@@ -124,7 +318,7 @@ namespace CryptoCodeControlAutomation.Application.Features.Codes.Commands.Adjust
                 {
                     if (!salesOrderItems.TryGetValue(code.SalesOrderItemId, out var salesOrderItem))
                     {
-                        throw new BusinessException("Sat�� sipari�i bulunamad�.");
+                        throw new BusinessException("Satış siparişi bulunamadı.");
                     }
 
                     var oldStatus = code.Status;

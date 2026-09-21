@@ -19,6 +19,7 @@ namespace CryptoCodeControlAutomation.Presentation.Controllers
         public IActionResult Homepage()
         {
             return View();
+            //return RedirectToAction("Index", "Home");
         }
 
         [AllowAnonymous]

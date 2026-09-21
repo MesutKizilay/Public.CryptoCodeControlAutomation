@@ -232,6 +232,7 @@
                             <div data-i18n="List">Kod Sorgulama</div>
                         </a>
                     </li>
+                    
                     @if (User.IsInRole("Admin") || User.IsInRole("Supervisor"))
                     {
                         <li class="menu-item">
@@ -261,6 +262,19 @@
                         </li>
 
                         <li class="menu-item">
+                            <a href="@Url.Action("Index", "UserGuide")" class="menu-link" target="_blank" rel="noopener">
+                                <i class="menu-icon tf-icons bx bx-book-open"></i>
+                                <div data-i18n="UserGuide">Kullanım Kılavuzu</div>
+                            </a>
+                        </li>
+                        <li class="menu-item">
+                            <a href="@Url.Action("CodeLifecycle", "Codes")" class="menu-link">
+                                <i class="menu-icon tf-icons bx bx-git-branch"></i>
+                                <div data-i18n="CodeLifecycle">Kod Yaşam Döngüsü</div>
+                            </a>
+                        </li>
+
+                        <li class="menu-item">
                             <a href="/Users/Users" class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-user"></i>
                                 <div data-i18n="Users">Kullanıcılar</div>
@@ -274,20 +288,13 @@
                             </a>
                         </li> *@
 
-                        @* <li class="menu-item">
+                        <li class="menu-item">
                             <a href="/Test/Test" class="menu-link">
                                 <i class="menu-icon tf-icons bx bx-user"></i>
-                                <div data-i18n="Users">Test</div>
+                                <div data-i18n="Users">Kod İskeleti</div>
                             </a>
-                        </li> *@
-                    }
-
-                    <li class="menu-item">
-                        <a href="@Url.Action("Index", "UserGuide")" class="menu-link" target="_blank" rel="noopener">
-                            <i class="menu-icon tf-icons bx bx-book-open"></i>
-                            <div data-i18n="UserGuide">Kullanım Kılavuzu</div>
-                        </a>
-                    </li>
+                        </li>
+                    }                    
                 </ul>
             </aside>
             <!-- / Menu -->

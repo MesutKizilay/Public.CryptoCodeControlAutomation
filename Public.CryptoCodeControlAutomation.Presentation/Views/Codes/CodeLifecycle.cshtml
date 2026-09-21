@@ -1,0 +1,57 @@
+@{
+    ViewData["Title"] = "Kod Yaşam Döngüsü";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+    <style>
+        .code-lifecycle-card {
+            overflow: hidden;
+        }
+
+        .code-lifecycle-viewer {
+            padding: 1rem;
+            background: #f7f8fa;
+        }
+
+        .code-lifecycle-image {
+            display: block;
+            width: 100%;
+            height: auto;
+            border: 1px solid rgba(67, 89, 113, .12);
+            border-radius: .5rem;
+            box-shadow: 0 .25rem .75rem rgba(67, 89, 113, .08);
+        }
+
+        @@media (max-width: 767.98px) {
+            .code-lifecycle-viewer {
+                overflow-x: auto;
+            }
+
+            .code-lifecycle-image {
+                width: 1200px;
+                max-width: none;
+            }
+        }
+    </style>
+}
+
+<div class="card code-lifecycle-card">
+    <div class="card-header border-bottom">
+        <h4 class="card-title mb-1">Kripto Kod Yaşam Döngüsü</h4>
+        <p class="text-muted mb-0">
+            Kodların sisteme yüklenmesinden üretim sonucuna kadar geçtiği aşamaları inceleyebilirsiniz.
+        </p>
+    </div>
+    <div class="code-lifecycle-viewer">
+        <a href="~/img/code-lifecycle/kripto-kod-yasam-dongusu.png"
+           target="_blank"
+           rel="noopener"
+           aria-label="Kripto Kod Yaşam Döngüsü görselini tam boy aç">
+            <img class="code-lifecycle-image"
+                 src="~/img/code-lifecycle/kripto-kod-yasam-dongusu.png"
+                 alt="Kripto kodların yükleme, tahsis, üretim, reject kurtarma ve fire aşamalarını gösteren yaşam döngüsü"
+                 loading="eager" />
+        </a>
+    </div>
+</div>

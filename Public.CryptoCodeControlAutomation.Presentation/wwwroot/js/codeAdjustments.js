@@ -22,6 +22,7 @@ $(function () {
     let plannedItems = [];
 
     const statusNames = {
+        0: "Available",
         1: "Allocated",
         2: "ProducedOk"
     };
@@ -249,6 +250,34 @@ $(function () {
         }).then((result) => result.isConfirmed);
     };
 
+    const requestSensitiveTransitionPassword = (html) => {
+        if (!Swal?.fire) {
+            return Promise.resolve(window.prompt("İşlemi onaylamak için şifre giriniz."));
+        }
+
+        return Swal.fire({
+            icon: "warning",
+            title: "İşlem Onayı",
+            html: html,
+            input: "password",
+            inputPlaceholder: "Şifre",
+            inputAttributes: {
+                autocomplete: "off"
+            },
+            showCancelButton: true,
+            confirmButtonText: "Manipüle Et",
+            cancelButtonText: "Vazgeç",
+            confirmButtonColor: "#ea5455",
+            inputValidator: (value) => {
+                if (!value) {
+                    return "Şifre zorunludur.";
+                }
+
+                return null;
+            }
+        }).then((result) => result.isConfirmed ? result.value : null);
+    };
+
     const sendStatusAdjustment = (payload) => {
         showLoading("Kod durumu güncelleniyor...");
 
@@ -346,10 +375,14 @@ $(function () {
         const fromStatus = operationParts[0];
         const toStatus = operationParts[1];
         const isProducedToAllocated = fromStatus === 2 && toStatus === 1;
+        const requiresShiftDate = fromStatus === 2 || toStatus === 2;
 
-        statusShiftDateWrapper.removeClass("d-none");
-        statusShiftDate.prop("disabled", false);
-        statusShiftDateLabel.text(isProducedToAllocated ? "D\u00fc\u015f\u00fclecek \u00dcretim Tarihi" : "Hedef \u00dcretim Tarihi");
+        statusShiftDateWrapper.toggleClass("d-none", !requiresShiftDate);
+        statusShiftDate.prop("disabled", !requiresShiftDate);
+
+        if (requiresShiftDate) {
+            statusShiftDateLabel.text(isProducedToAllocated ? "D\u00fc\u015f\u00fclecek \u00dcretim Tarihi" : "Hedef \u00dcretim Tarihi");
+        }
     };
 
     summaryButton.on("click", function (event) {
@@ -416,12 +449,14 @@ $(function () {
         const operationParts = (statusOperation.val() || "").split("-").map(Number);
         const fromStatus = operationParts[0];
         const toStatus = operationParts[1];
-        const shiftDate = getDateForRequest(statusShiftDate);
+        const isSensitiveTransition = fromStatus === 0 || toStatus === 0;
+        const requiresShiftDate = fromStatus === 2 || toStatus === 2;
+        const shiftDate = requiresShiftDate ? getDateForRequest(statusShiftDate) : null;
         const shiftDateDisplay = statusShiftDate.val()?.toString().trim();
         const shiftDateWarning = toStatus === 2 ? "Hedef \u00fcretim tarihini se\u00e7iniz." : "D\u00fc\u015f\u00fclecek \u00fcretim tarihini se\u00e7iniz.";
         const reason = statusReason.val()?.toString().trim();
 
-        if (!shiftDate) {
+        if (requiresShiftDate && !shiftDate) {
             Toast?.fire({ icon: "warning", title: shiftDateWarning });
             return;
         }
@@ -434,13 +469,13 @@ $(function () {
         const html = `
             <div class="text-start">
                 <p class="mb-2"><strong>${quantity}</strong> adet kod <strong>${statusNames[fromStatus]}</strong> durumundan <strong>${statusNames[toStatus]}</strong> durumuna alınacak.</p>
-                ${shiftDateDisplay ? `<p class="mb-2">Üretim Tarihi: <strong>${shiftDateDisplay}</strong></p>` : ""}
-                <p class="mb-0">Bu işlem üretim raporlarını ve müşteriyle paylaşılan günlük adetleri etkiler. İşlem kayıt altına alınacaktır.</p>
+                ${requiresShiftDate && shiftDateDisplay ? `<p class="mb-2">Üretim Tarihi: <strong>${shiftDateDisplay}</strong></p>` : ""}
+                <p class="mb-0">${isSensitiveTransition
+                    ? "Bu işlem kodların tahsis bilgilerini değiştirecektir. İşlem kayıt altına alınacaktır."
+                    : "Bu işlem üretim raporlarını ve müşteriyle paylaşılan günlük adetleri etkiler. İşlem kayıt altına alınacaktır."}</p>
             </div>`;
 
-        confirmDangerousOperation(html).then((confirmed) => {
-            if (!confirmed) return;
-
+        const submitAdjustment = (password) => {
             sendStatusAdjustment({
                 salesOrderItemId: selection.salesOrderItemId,
                 plannedOrderId: selection.plannedOrderId,
@@ -448,8 +483,22 @@ $(function () {
                 toStatus: toStatus,
                 quantity: quantity,
                 shiftDate: shiftDate,
-                reason: reason
+                reason: reason,
+                password: password
             });
+        };
+
+        if (isSensitiveTransition) {
+            requestSensitiveTransitionPassword(html).then((password) => {
+                if (!password) return;
+                submitAdjustment(password);
+            });
+            return;
+        }
+
+        confirmDangerousOperation(html).then((confirmed) => {
+            if (!confirmed) return;
+            submitAdjustment(null);
         });
     });
 

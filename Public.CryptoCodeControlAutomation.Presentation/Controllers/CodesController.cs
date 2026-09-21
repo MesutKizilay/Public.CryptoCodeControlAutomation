@@ -46,6 +46,12 @@ namespace CryptoCodeControlAutomation.Presentation.Controllers
             return View();
         }
 
+        public IActionResult CodeLifecycle()
+        {
+            return View();
+        }
+
+        [Authorize(Roles = "Admin,Supervisor")]
         public IActionResult CodeAdjustments()
         {
             return View();
