@@ -34,31 +34,59 @@ namespace CryptoCodeControlAutomation.Application.Features.CodeAdjustmentLogs.Qu
                 var salesOrderItems = _salesOrderItemRepository.Query().IgnoreQueryFilters();
                 var plannedOrders = _plannedOrderRepository.Query();
 
-                var query = from log in logs
-                            join salesOrderItem in salesOrderItems on log.SalesOrderItemId equals salesOrderItem.SalesOrderItemId into salesOrderItemJoin
-                            from salesOrderItem in salesOrderItemJoin.DefaultIfEmpty()
-                            join plannedOrder in plannedOrders on log.PlannedOrderId equals plannedOrder.PlannedOrderId into plannedOrderJoin
-                            from plannedOrder in plannedOrderJoin.DefaultIfEmpty()
-                            select new GetListCodeAdjustmentLogDto
-                            {
-                                CodeAdjustmentLogId = log.CodeAdjustmentLogId,
-                                OperationType = log.OperationType,
-                                SalesOrderNo = salesOrderItem != null ? salesOrderItem.SalesOrderNo : null,
-                                SalesItemNo = salesOrderItem != null ? salesOrderItem.SalesItemNo : null,
-                                PlannedOrderNo = plannedOrder != null ? plannedOrder.PlannedOrderNo : null,
-                                FromStatus = log.FromStatus,
-                                ToStatus = log.ToStatus,
-                                FromShiftDate = log.FromShiftDate,
-                                ToShiftDate = log.ToShiftDate,
-                                Quantity = log.Quantity,
-                                Reason = log.Reason,
-                                CreatedBy = log.CreatedBy,
-                                CreatedAt = log.CreatedAt
-                            };
+                var sourceQuery = from log in logs
+                                  join salesOrderItem in salesOrderItems on log.SalesOrderItemId equals salesOrderItem.SalesOrderItemId into salesOrderItemJoin
+                                  from salesOrderItem in salesOrderItemJoin.DefaultIfEmpty()
+                                  join plannedOrder in plannedOrders on log.PlannedOrderId equals plannedOrder.PlannedOrderId into plannedOrderJoin
+                                  from plannedOrder in plannedOrderJoin.DefaultIfEmpty()
+                                  select new
+                                  {
+                                      Log = log,
+                                      SalesOrderItem = salesOrderItem,
+                                      PlannedOrder = plannedOrder
+                                  };
 
-                if (request.DynamicQuery is not null)
+                var searchValue = request.DynamicQuery?.Filter?.Value?.Trim();
+                if (!string.IsNullOrEmpty(searchValue))
                 {
-                    query = query.ToDynamic(request.DynamicQuery);
+                    sourceQuery = sourceQuery.Where(x =>
+                        x.Log.OperationType.Contains(searchValue) ||
+                        (x.SalesOrderItem != null &&
+                         x.SalesOrderItem.SalesOrderNo != null &&
+                         x.SalesOrderItem.SalesOrderNo.Contains(searchValue)) ||
+                        (x.SalesOrderItem != null &&
+                         x.SalesOrderItem.SalesItemNo != null &&
+                         x.SalesOrderItem.SalesItemNo.Contains(searchValue)) ||
+                        (x.PlannedOrder != null &&
+                         x.PlannedOrder.PlannedOrderNo != null &&
+                         x.PlannedOrder.PlannedOrderNo.Contains(searchValue)) ||
+                        (x.Log.CreatedBy != null && x.Log.CreatedBy.Contains(searchValue)) ||
+                        (x.Log.Reason != null && x.Log.Reason.Contains(searchValue)));
+                }
+
+                var query = sourceQuery.Select(x => new GetListCodeAdjustmentLogDto
+                {
+                    CodeAdjustmentLogId = x.Log.CodeAdjustmentLogId,
+                    OperationType = x.Log.OperationType,
+                    SalesOrderNo = x.SalesOrderItem != null ? x.SalesOrderItem.SalesOrderNo : null,
+                    SalesItemNo = x.SalesOrderItem != null ? x.SalesOrderItem.SalesItemNo : null,
+                    PlannedOrderNo = x.PlannedOrder != null ? x.PlannedOrder.PlannedOrderNo : null,
+                    FromStatus = x.Log.FromStatus,
+                    ToStatus = x.Log.ToStatus,
+                    FromShiftDate = x.Log.FromShiftDate,
+                    ToShiftDate = x.Log.ToShiftDate,
+                    Quantity = x.Log.Quantity,
+                    Reason = x.Log.Reason,
+                    CreatedBy = x.Log.CreatedBy,
+                    CreatedAt = x.Log.CreatedAt
+                });
+
+                if (request.DynamicQuery?.Sort?.Any() == true)
+                {
+                    query = query.ToDynamic(new DynamicQuery
+                    {
+                        Sort = request.DynamicQuery.Sort
+                    });
                 }
                 else
                 {
